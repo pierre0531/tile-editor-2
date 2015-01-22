@@ -24,3 +24,12 @@ C:\Users\pierre531\Desktop\newSGP\tileEditor\toolsTempalte\obj\Debug\toolsTempal
 C:\Users\pierre531\Desktop\newSGP\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.Form1.resources
 C:\Users\pierre531\Desktop\newSGP\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.Properties.Resources.resources
 C:\Users\pierre531\Desktop\newSGP\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.csproj.GenerateResource.Cache
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\bin\Debug\toolsTempalte.exe.config
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.exe
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.csprojResolveAssemblyReference.cache
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.Form1.resources
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.Properties.Resources.resources
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.csproj.GenerateResource.Cache
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\bin\Debug\toolsTempalte.exe
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\bin\Debug\toolsTempalte.pdb
+C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.pdb

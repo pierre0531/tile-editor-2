@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
+using System.Collections.Generic;
 
 namespace toolsTempalte
 {
@@ -25,6 +25,9 @@ namespace toolsTempalte
             set { looping = value; }
         }
 
+        enum paintMode {full,stamp};
+
+        paintMode m_mode;
 
         int mapX = 5;
         int mapY = 5;
@@ -41,18 +44,21 @@ namespace toolsTempalte
         Tile stampSelectedTile;
         //The mouse move
         Tile hoverTile;
+        Tile[,] hoverTileCollection;
+        BucketCollection m_bucketColletion = new BucketCollection();
+
         //map data
         Size mapSizeSet = new Size (5, 5);
 
         //tile grid
-        Size tileSizeSet = new Size(5, 5);
+        Size tileSizeSet= new Size(5, 5);
 
         //tile data
         Size tileSize = new Size(32, 32);
 
         //an 5x5 tile array 
-        Tile[,] map = new Tile[5, 5];
-      
+        Tile[,] map ;//= new Tile[5, 5];
+        Tile[,] mapFullTile;// = new Tile[5, 5];
        
         //for stamp effect
         bool mouseAtTileSet = false;
@@ -62,22 +68,41 @@ namespace toolsTempalte
         {
             InitializeComponent();
 
-            for (int x = 0; x < mapX; x++)
-            {
-                for (int y = 0; y < mapY; y++)
-                {
-                    map[x, y].X = -1;
-                    map[x, y].Y = -1;
-                }
-            }
+            m_bucketColletion.MouseX = -1;
+            m_bucketColletion.MouseY = -1;
+
+            initMap(ref map, mapX, mapY);
+
+            initMap(ref mapFullTile, mapX, mapY);
+
             D3D.Initialize(panel1, true);
             D3D.AddRenderTarget(panel2);
             D3D.AddRenderTarget(panel3);
             TM.Initialize(D3D.Device, D3D.Sprite);
 
+            m_mode = paintMode.stamp;
+            buttonFull.Checked = false;
+            ButtonStamp.Checked = true;
+
             TextureID = TM.LoadTexture("testmap3.bmp");
             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
             panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
+        }
+
+      //  private void 
+        private void initMap(ref Tile[,] _map, int _mapX, int _mapY)
+        {
+            _map = new Tile[_mapX, _mapY];
+            for (int x = 0; x < _mapX; x++)
+            {
+                for (int y = 0; y < _mapY; y++)
+                {
+                    _map[x, y].X = -1;
+                    _map[x, y].Y = -1;
+                    _map[x, y].CheckForBucket = false;
+                    _map[x, y].PreviewOnMap = false;
+                }
+            }
         }
 
         public new void Update()
@@ -108,9 +133,9 @@ namespace toolsTempalte
                         Color.FromArgb(255, 0, 0, 0), 1);
                 }
             }
-            Rectangle src = new Rectangle();
 
             //for render the map section
+            Rectangle src = new Rectangle();        
             for (int x = 0; x < mapX; x++)
             {
                 for (int y = 0; y < mapY; y++)
@@ -122,24 +147,87 @@ namespace toolsTempalte
                     src.X = map[x, y].X * tileWidth;
                     src.Y = map[x, y].Y * tileHeigth;
                     src.Size = new Size(tileWidth, tileHeigth);
+                    int locationX = x * tileWidth + offset.X;
+                    int locationY = y * tileWidth + offset.Y;
                     TM.Draw(TextureID, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
-
+                 
                 }
             }
 
-            //render the mouse location
-            src.X = selectedTile.X * tileWidth;
-            src.Y = selectedTile.Y * tileHeigth;
-            src.Size = new Size(tileWidth, tileHeigth);
-            TM.Draw(TextureID, hoverTile.X * tileWidth, hoverTile.Y * tileHeigth, 1, 1, src);
+            //render the preview and mouse
+            switch (m_mode)
+            {
 
+                case paintMode.full:
+                    renderPreviewFull();
+                    break;
+                case paintMode.stamp:
+                    renderPreviewStamp();
+                    break;
+                default:
+                    break;
+            }
+        
 
             D3D.SpriteEnd();
             D3D.DeviceEnd();
             D3D.Present();
         }
-      
 
+        private void renderPreviewFull()
+        {
+            Point offset = panel1.AutoScrollPosition;
+
+            //for render the map section
+            Rectangle src = new Rectangle();
+            for (int x = 0; x < mapX; x++)
+            {
+                for (int y = 0; y < mapY; y++)
+                {
+
+                    if (mapFullTile[x, y].X == -1 && mapFullTile[x, y].Y == -1)
+                        continue;
+
+                    //only show when this value is true
+                    if (mapFullTile[x, y].PreviewOnMap != true)
+                        continue;
+
+                    src.X = mapFullTile[x, y].X * tileWidth;
+                    src.Y = mapFullTile[x, y].Y * tileHeigth;
+                  
+                    src.Size = new Size(tileWidth, tileHeigth);
+                  
+                    int locationX = x * tileWidth + offset.X;
+                    int locationY = y * tileWidth + offset.Y;
+
+
+                    TM.Draw(TextureID, locationX, locationY, 1, 1, src);
+
+                    if(  m_bucketColletion.ShowBluePath == true)
+                    D3D.DrawRect(new Rectangle(locationX, locationY,
+                             tileWidth, tileHeigth), Color.FromArgb(128, 0, 0, 255));
+           
+
+                }
+            }
+        }
+        private void renderPreviewStamp()
+        {
+            Rectangle src = new Rectangle();        
+            //render the mouse location
+            for (int tempX = 0; tempX <= stampSelectedTile.X - selectedTile.X; tempX++)
+            {
+                for (int tempY = 0; tempY <= stampSelectedTile.Y - selectedTile.Y; tempY++)
+                {
+                    src.X = (selectedTile.X + tempX) * tileWidth;
+                    src.Y = (selectedTile.Y + tempY) * tileHeigth;
+                    src.Size = new Size(tileWidth, tileHeigth);
+                    int locationX = hoverTile.X * tileWidth + tempX * tileWidth;
+                    int locationY = hoverTile.Y * tileHeigth + tempY * tileHeigth;
+                    TM.Draw(TextureID, locationX, locationY, 1, 1, src);
+                }
+            }
+        }
         public void Render2()
         {
             D3D.Clear(panel2, Color.WhiteSmoke);
@@ -160,25 +248,38 @@ namespace toolsTempalte
                 }
             }
 
-           
-            for (int x = selectedTile.X; x <= stampSelectedTile.X; x++)
+            //draw green selection area
+            for (int x = minor(selectedTile.X, stampSelectedTile.X); x <= major(selectedTile.X, stampSelectedTile.X); x++)
             {
-                for (int y = selectedTile.Y; y <= stampSelectedTile.Y; y++)
+                for (int y =  minor(selectedTile.Y, stampSelectedTile.Y); y <= major(selectedTile.Y, stampSelectedTile.Y); y++)
                 {
                     D3D.DrawRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y,
                         tileWidth, tileHeigth), Color.FromArgb(128, 0, 255, 0));
-                  //  D3D.DrawHollowRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y, tileWidth, tileHeigth), Color.FromArgb(255, 255, 0, 0), 3);
+                    //  D3D.DrawHollowRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y, tileWidth, tileHeigth), Color.FromArgb(255, 255, 0, 0), 3);
 
                 }
             }
-              
+                       
             D3D.SpriteEnd();
             D3D.DeviceEnd();
             D3D.Present(); 
         }
 
-        private int minor()
-       {}
+        private int minor(int x, int y)
+        {
+            if (x <= y)
+                return x;
+            else
+                return y;
+        }
+
+        private int major(int x, int y)
+        {
+            if (x > y)
+                return x;
+            else
+                return y;
+        }
         void Render3()
         {
             D3D.Clear(panel3, Color.WhiteSmoke);
@@ -286,19 +387,166 @@ namespace toolsTempalte
             int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileSize.Width; //0~5(default)
             int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileSize.Height;//0~5(default)
 
-            //Set the selected tile in the map, put the selected result in the map array
-            map[x, y] = selectedTile;
 
+            if (m_mode == paintMode.stamp)
+                storageTile(x, y);
+            else if (m_mode == paintMode.full)
+                storageFullTile();
+            else
+            {
+            }
         }
 
-        private void panel1_MouseMove(object sender, MouseEventArgs e)
+       // private
+    
+        private void storageFullTile()
         {
-            //Caculate where is the mouse
-            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileSize.Width; //0~5(default)
-            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileSize.Height;//0~5(default)
+            copyMapInfo(ref mapFullTile,ref map,false);
+            m_bucketColletion.ShowBluePath = false;
+            //map = mapFullTile;
+            //for (int x = 0; x < mapX; x++)
+            //{
+            //    for (int y = 0; y < mapY; y++)
+            //    {
+            //        map = mapFullTile;
+            //        map[x,y].X = mapFullTile[x,y].X;
+            //        map[x,y].Y = mapFullTile[x,y].Y;
+            //    }
+            //}
+               
+        }
 
-            hoverTile.X = x;
-            hoverTile.Y = y;
+        private void copyMapInfo(ref Tile[,] _src, ref Tile[,] _target,bool totalCopy)
+        {
+            for (int x = 0; x < mapX; x++)
+            {
+                for (int y = 0; y < mapY; y++)
+                {
+                    //total copy
+                    if (totalCopy == true)
+                    {
+                        _target[x, y].X = _src[x, y].X;
+                        _target[x, y].Y = _src[x, y].Y;
+                    }
+                        //not total copy for preview
+                    else
+                    {
+                        if (_src[x, y].PreviewOnMap == true)
+                        {
+                            _target[x, y].X = _src[x, y].X;
+                            _target[x, y].Y = _src[x, y].Y;
+                        }
+                    }
+
+                  
+                }
+            }
+        }
+        public void fullMap(int clickX, int clickY)
+        {
+            //know what is the mouse going to check
+            //possible from -1 ~ 5
+            
+            //init map
+            initMap(ref mapFullTile, mapX, mapY);
+
+            //blue path to true
+            m_bucketColletion.ShowBluePath = true;
+
+            //copy map to mapFullTile
+            copyMapInfo(ref map, ref  mapFullTile,true);
+
+            int checkTileX = mapFullTile[clickX, clickY].X;
+            int checkTileY = mapFullTile[clickX, clickY].Y;
+
+            //recursive from the mouse location
+            recursiveTile(clickX, clickY, checkTileX, checkTileY);         
+        }
+
+
+        private void limitRecursiveXY(ref int _x,ref int _y)
+        {
+            //safe check
+            if (_x >= mapX)
+                _x = mapX -1;
+            else if (_x < 0)
+                _x = 0;
+
+            if (_y >= mapY)
+                _y = mapY - 1;
+            else if (_y < 0)
+                _y = 0;
+        }
+        private void recursiveTile(int _startX, int _startY, int _checkTileX, int _checkTileY)
+        {
+            int tempX,tempY ;
+
+            //center
+            tempX = _startX;
+            tempY = _startY;
+  
+            recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
+
+            //top
+            tempX = _startX;
+            tempY = _startY - 1;
+
+             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
+    
+
+            //down
+            tempX = _startX;
+            tempY = _startY + 1;
+
+            recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
+       
+
+            //left
+            tempX = _startX - 1;
+            tempY = _startY ;
+
+            recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
+       
+            //right
+            tempX = _startX + 1;
+            tempY = _startY ;
+
+            recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
+   
+        }
+
+        private void recursiveCheck(int tempX, int tempY, int _checkTileX, int _checkTileY)
+        {
+            limitRecursiveXY(ref tempX, ref tempY);
+
+            //only chech while the tile is not check
+            if (mapFullTile[tempX, tempY].CheckForBucket == true)
+                return;
+
+            //error check for not out of range
+            if (tempX >= mapX || tempY >= mapY || tempX <0 || tempY< 0)
+                return;
+
+            //if the same, storage selected tile to the map
+            if (mapFullTile[tempX, tempY].X == _checkTileX && mapFullTile[tempX, tempY].Y == _checkTileY)
+            {
+             
+                //storage to the mapFullTile for preview usage 
+                mapFullTile[tempX, tempY].X = selectedTile.X;
+                mapFullTile[tempX, tempY].Y = selectedTile.Y;
+                mapFullTile[tempX, tempY].CheckForBucket = true;
+                mapFullTile[tempX, tempY].PreviewOnMap = true;
+
+                //go to next cursive point
+                recursiveTile(tempX, tempY, _checkTileX, _checkTileY);
+            }
+        }
+
+        private void stampMouseMove(int _x, int _y, MouseEventArgs e)
+        {
+            hoverTile.X = _x;
+            hoverTile.Y = _y;
+
 
             //left click for continuous draw
             if (e.Button == MouseButtons.Left)
@@ -308,20 +556,67 @@ namespace toolsTempalte
                     return;
 
                 //safe check
-                if (x > mapSizeSet.Width)
-                    x = mapSizeSet.Width - 1;
-                else if (x < 0)
-                    x = 0;
+                if (_x > mapSizeSet.Width)
+                    _x = mapSizeSet.Width - 1;
+                else if (_x < 0)
+                    _x = 0;
 
-                if (y > mapSizeSet.Height)
-                    y = mapSizeSet.Height - 1;
-                else if (y < 0)
-                    y = 0;
+                if (_y > mapSizeSet.Height)
+                    _y = mapSizeSet.Height - 1;
+                else if (_y < 0)
+                    _y = 0;
 
-                //Set the selected tile in the map, put the selected result in the 5x5 map array
-                map[x, y] = selectedTile;
+                storageTile(_x, _y);
 
             }
+        }
+
+        private void fullMouseMove(int _x, int _y, MouseEventArgs e)
+        {
+            //safe check
+            if (outOfRangeMap(e))
+                return;
+
+            //safe check
+            if (_x > mapSizeSet.Width)
+                _x = mapSizeSet.Width - 1;
+            else if (_x < 0)
+                _x = 0;
+
+            if (_y > mapSizeSet.Height)
+                _y = mapSizeSet.Height - 1;
+            else if (_y < 0)
+                _y = 0;
+
+            if (m_bucketColletion.MouseX == _x && m_bucketColletion.MouseY == _y)
+                return;
+
+            m_bucketColletion.MouseX = _x;
+            m_bucketColletion.MouseY = _y;
+
+
+            fullMap(_x, _y);
+
+          
+        }
+        private void panel1_MouseMove(object sender, MouseEventArgs e)
+        {
+            //Caculate where is the mouse
+            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileSize.Width; //0~5(default)
+            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileSize.Height;//0~5(default)
+
+            switch (m_mode)
+            {
+                case paintMode.full:
+                    fullMouseMove(x,y,e);
+                    break;
+                case paintMode.stamp:
+                    stampMouseMove(x,y,e);
+                    break;
+                default:
+                    break;
+            }
+          
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
@@ -369,10 +664,9 @@ namespace toolsTempalte
                 stampSelectedTile.X = x;
                 stampSelectedTile.Y = y;
 
-              //  calculateStamp();
             }
         }
-
+       
         private void panel2_MouseUp(object sender, MouseEventArgs e)
         {
             //no need to do anything if it's not available action
@@ -380,8 +674,43 @@ namespace toolsTempalte
                 return;
           
             mouseAtTileSet = false;
+
+            //calculate which selection area
+            calculateStamp();
+
+         
         }
 
+        private void storageTile(int _x, int _y)
+        {
+            //send the swap number back
+            int startX = selectedTile.X;
+            int startY = selectedTile.Y;
+
+            int endX = stampSelectedTile.X;
+            int endY = stampSelectedTile.Y;
+
+            int relativeXLength = endX - startX;
+            int relativeYLength = endY - startY;
+
+          
+            for (int startPtX = startX, relativeX = 0; startPtX <= endX; startPtX++, relativeX++)
+            {
+                for (int startPtY = startY, relativeY = 0; startPtY <= endY; startPtY++, relativeY++)
+                {
+                    int mapLocationX = _x + relativeX;
+                    int mapLocationY = _y + relativeY;
+
+                    //out of range here
+                    if (mapLocationX >= mapX || mapLocationY >= mapY)
+                        continue;
+
+                    //store the relative tile to the map
+                    map[mapLocationX, mapLocationY].X = selectedTile.X + relativeX;
+                    map[mapLocationX, mapLocationY].Y = selectedTile.Y + relativeY;
+                }
+            }
+        }
         private void calculateStamp()
         {
           //know the selectedTile info
@@ -413,7 +742,12 @@ namespace toolsTempalte
             stampSelectedTile.X = x2;
             stampSelectedTile.Y = y2;
 
+            //make hover
+            hoverTileCollection = new Tile[x2 - x1, y2 - y1];
+
         }
+
+
         //select tile first
         private void panel2_MouseDown(object sender, MouseEventArgs e)
         {
@@ -429,6 +763,20 @@ namespace toolsTempalte
             stampSelectedTile.Y = selectedTile.Y;
 
             mouseAtTileSet = true;
+        }
+
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+            m_mode = paintMode.full;
+            buttonFull.Checked = true;
+            ButtonStamp.Checked = false;
+        }
+
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            m_mode = paintMode.stamp;
+            buttonFull.Checked = false;
+            ButtonStamp.Checked = true;
         }
 
       
