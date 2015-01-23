@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using System.Collections.Generic;
+//using System.Collections.Generic;
 
 namespace toolsTempalte
 {
@@ -29,14 +29,14 @@ namespace toolsTempalte
 
         paintMode m_mode;
 
-        int mapX = 5;
-        int mapY = 5;
+        int mapX ;
+        int mapY;
 
-        int tileSetX = 10;
-        int tileSetY = 10;
+        int tileSetX ;
+        int tileSetY;
 
-        int tileWidth = 32;
-        int tileHeigth = 32;
+        int tileWidth;
+        int tileHeigth;
 
         //set-up the initial 
         //The current selected tile
@@ -48,26 +48,26 @@ namespace toolsTempalte
         BucketCollection m_bucketColletion = new BucketCollection();
 
         //map data
-        Size mapSizeSet = new Size (5, 5);
-
-        //tile grid
-        Size tileSizeSet= new Size(5, 5);
-
-        //tile data
-        Size tileSize = new Size(32, 32);
+       // Size mapSizeSet ;
+                        
+        //tile grid     
+     //   Size tileSizeSet;
+                        
+        //tile data     
+     //   Size tileSize  ;
 
         //an 5x5 tile array 
-        Tile[,] map ;//= new Tile[5, 5];
-        Tile[,] mapFullTile;// = new Tile[5, 5];
-       
+        Tile[,] map ;
+        Tile[,] mapFullTile;
+        Tile[,] tempTile;
         //for stamp effect
         bool mouseAtTileSet = false;
-
-
+        int counter = 0;
+        resizeOptionsWindows tool = null;
         public Form1()
         {
             InitializeComponent();
-
+            initializeNumber();
             m_bucketColletion.MouseX = -1;
             m_bucketColletion.MouseY = -1;
 
@@ -89,7 +89,26 @@ namespace toolsTempalte
             panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
         }
 
-      //  private void 
+        private void initializeNumber()
+        {
+             mapX = 50;
+             mapY = 50;
+
+             tileSetX = 5;
+             tileSetY = 5;
+
+             tileWidth = 32;
+             tileHeigth = 32;
+
+            //map data
+            // mapSizeSet = new Size(5, 5);
+
+            ////tile grid
+            // tileSizeSet = new Size(5, 5);
+
+            ////tile data
+            // tileSize = new Size(32, 32);
+        }
         private void initMap(ref Tile[,] _map, int _mapX, int _mapY)
         {
             _map = new Tile[_mapX, _mapY];
@@ -213,6 +232,7 @@ namespace toolsTempalte
         }
         private void renderPreviewStamp()
         {
+            Point offset = panel1.AutoScrollPosition;
             Rectangle src = new Rectangle();        
             //render the mouse location
             for (int tempX = 0; tempX <= stampSelectedTile.X - selectedTile.X; tempX++)
@@ -222,8 +242,8 @@ namespace toolsTempalte
                     src.X = (selectedTile.X + tempX) * tileWidth;
                     src.Y = (selectedTile.Y + tempY) * tileHeigth;
                     src.Size = new Size(tileWidth, tileHeigth);
-                    int locationX = hoverTile.X * tileWidth + tempX * tileWidth;
-                    int locationY = hoverTile.Y * tileHeigth + tempY * tileHeigth;
+                    int locationX = hoverTile.X * tileWidth + tempX * tileWidth+ offset.X;
+                    int locationY = hoverTile.Y * tileHeigth + tempY * tileHeigth+ offset.Y;
                     TM.Draw(TextureID, locationX, locationY, 1, 1, src);
                 }
             }
@@ -301,9 +321,28 @@ namespace toolsTempalte
                     src.Y = map[x, y].Y * tileHeigth;
                     src.Size = new Size(tileWidth, tileHeigth);
                   
-                    int scaleX = 2;
-                    int scaleY = 2;
-                    TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY, 1 / (float)scaleX, 1 / (float)scaleY, src);
+                    //calculate scale on panel3
+                    int scaleX = mapX * tileWidth /panel3.Size.Width;                    
+                    int scaleY = mapY * tileHeigth/ panel3.Size.Height;
+
+                    //safe check
+                    if (scaleX <= 0)
+                        scaleX = 1;
+                    else
+                        scaleX += 1;
+                   
+                    if (scaleY <= 0)
+                        scaleY = 1;
+                    else
+                        scaleY += 1;
+
+                    if (scaleX >= scaleY)
+                        scaleY = scaleX;
+                    else
+                        scaleX = scaleY;
+                    
+                    TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY,
+                        1 / (float)scaleX, 1 / (float)scaleY, src);
 
                 }
             }
@@ -357,8 +396,8 @@ namespace toolsTempalte
         bool outOfRangeTile(MouseEventArgs e)
         {
 
-            if (e.Location.X >= tileSizeSet.Width * tileSize.Width || e.Location.X <= 0 ||
-                e.Location.Y >= tileSizeSet.Height * tileSize.Height || e.Location.Y <= 0)
+            if (e.Location.X >= tileWidth * tileSetX  || e.Location.X <= 0 ||
+                e.Location.Y >= tileHeigth * tileSetY || e.Location.Y <= 0)
                 return true;
 
             return false;
@@ -370,8 +409,8 @@ namespace toolsTempalte
         bool outOfRangeMap(MouseEventArgs e)
         {
 
-            if (e.Location.X >= mapSizeSet.Width * tileSize.Width || e.Location.X <= 0 ||
-                e.Location.Y >= mapSizeSet.Height * tileSize.Height || e.Location.Y <= 0)
+            if (e.Location.X >= mapX * tileWidth || e.Location.X <= 0 ||
+                e.Location.Y >= mapY * tileHeigth || e.Location.Y <= 0)
                 return true;
 
             return false;
@@ -384,8 +423,8 @@ namespace toolsTempalte
                 return;
 
             //Caculate where is the mouse
-            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileSize.Width; //0~5(default)
-            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileSize.Height;//0~5(default)
+            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
+            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
 
 
             if (m_mode == paintMode.stamp)
@@ -485,6 +524,7 @@ namespace toolsTempalte
             tempX = _startX;
             tempY = _startY;
   
+
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
 
             //top
@@ -517,6 +557,8 @@ namespace toolsTempalte
 
         private void recursiveCheck(int tempX, int tempY, int _checkTileX, int _checkTileY)
         {
+            counter++;
+
             limitRecursiveXY(ref tempX, ref tempY);
 
             //only chech while the tile is not check
@@ -556,13 +598,13 @@ namespace toolsTempalte
                     return;
 
                 //safe check
-                if (_x > mapSizeSet.Width)
-                    _x = mapSizeSet.Width - 1;
+                if (_x > mapX )
+                    _x = mapX  - 1;
                 else if (_x < 0)
                     _x = 0;
 
-                if (_y > mapSizeSet.Height)
-                    _y = mapSizeSet.Height - 1;
+                if (_y > mapY)
+                    _y = mapY - 1;
                 else if (_y < 0)
                     _y = 0;
 
@@ -578,13 +620,13 @@ namespace toolsTempalte
                 return;
 
             //safe check
-            if (_x > mapSizeSet.Width)
-                _x = mapSizeSet.Width - 1;
+            if (_x > mapX )
+                _x = mapX  - 1;
             else if (_x < 0)
                 _x = 0;
 
-            if (_y > mapSizeSet.Height)
-                _y = mapSizeSet.Height - 1;
+            if (_y > mapY)
+                _y = mapY - 1;
             else if (_y < 0)
                 _y = 0;
 
@@ -602,8 +644,8 @@ namespace toolsTempalte
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
             //Caculate where is the mouse
-            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileSize.Width; //0~5(default)
-            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileSize.Height;//0~5(default)
+            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
+            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
 
             switch (m_mode)
             {
@@ -619,21 +661,10 @@ namespace toolsTempalte
           
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
 
-        }
+      
 
-        private void resizeMapToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void panel2_MouseClick(object sender, MouseEventArgs e)
-        {
-           
-
-        }
+     
 
         private void panel2_MouseMove(object sender, MouseEventArgs e)
         {
@@ -642,17 +673,17 @@ namespace toolsTempalte
             {
 
                 //get the mouse tile location
-                int x = (e.Location.X - panel2.AutoScrollPosition.X) / tileSize.Width;//0~5
-                int y = (e.Location.Y - panel2.AutoScrollPosition.Y) / tileSize.Height;//0~1
+                int x = (e.Location.X - panel2.AutoScrollPosition.X) / tileWidth;//0~5
+                int y = (e.Location.Y - panel2.AutoScrollPosition.Y) / tileHeigth;//0~1
 
                 //safe check
-                if (x > mapSizeSet.Width)
-                    x = mapSizeSet.Width - 1;
+                if (x > mapX )
+                    x = mapX  - 1;
                 else if (x < 0)
                     x = 0;
 
-                if (y > mapSizeSet.Height)
-                    y = mapSizeSet.Height - 1;
+                if (y > mapY)
+                    y = mapY - 1;
                 else if (y < 0)
                     y = 0;
 
@@ -755,8 +786,8 @@ namespace toolsTempalte
                 return;
 
             //get the mouse location at selectedTile
-            selectedTile.X = (e.Location.X - panel2.AutoScrollPosition.X) / tileSize.Width;//0~5
-            selectedTile.Y = (e.Location.Y - panel2.AutoScrollPosition.Y) / tileSize.Height;//0~1
+            selectedTile.X = (e.Location.X - panel2.AutoScrollPosition.X) / tileWidth;//0~5
+            selectedTile.Y = (e.Location.Y - panel2.AutoScrollPosition.Y) / tileHeigth;//0~1
 
             //send the mouse info to stampSelectedTile
             stampSelectedTile.X = selectedTile.X;
@@ -779,6 +810,109 @@ namespace toolsTempalte
             ButtonStamp.Checked = true;
         }
 
-      
+
+
+        //////////////////////////////////////tool windows////////////////////////////////////
+        void tool_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            tool = null;
+        }
+
+        void tool_buttonAdjust(object sender, EventArgs e)
+        {
+            resizeOptionsWindows adjustToolsWindows = (resizeOptionsWindows)sender;
+
+            //map size reset
+            int oldX = mapX ;
+            int oldY = mapY;
+
+            int newX = adjustToolsWindows.ToolsMapX;
+            int newY = adjustToolsWindows.ToolsMapY;
+            resetMapSize(oldX, oldY, newX, newY);
+            mapX  = newX;
+            mapY = newY;
+
+
+            //tile size reset
+            tileSetX  = adjustToolsWindows.ToolsTileX;
+            tileSetY = adjustToolsWindows.ToolsTileY;
+
+            //tile set size reset
+            tileWidth = adjustToolsWindows.ToolsTileSetW;
+            tileHeigth = adjustToolsWindows.ToolsTileSetH;
+
+            //selected Tile safe check
+            if (selectedTile.X > tileWidth)
+                selectedTile.X = tileWidth - 1;
+            if (selectedTile.Y > tileHeigth)
+                selectedTile.Y = tileHeigth - 1;
+
+            setTheScroll();
+            
+
+        }
+        void setTheScroll()
+        {
+            //set the scroll of the tile part 
+            //panel1.AutoScrollMinSize = tilePic.Size;
+
+            ////set the scroll of the map part
+            //Size temp = new Size();
+            //temp.Width = mapX  * tileSetX ;
+            //temp.Height = mapY * tileSetY;
+            //panel1.AutoScrollMinSize = temp;
+
+            panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
+        }
+        void resetMapSize(int _oldX, int _oldY, int _newX, int _newY)
+        {
+            //init temp Tile
+            initMap(ref tempTile, _newX, _newY);
+
+            //copy the old to the temp
+            for (int x = 0; x < _oldX; x++)
+                for (int y = 0; y < _oldY; y++)
+                {
+                    //if new index > old index, then can copy
+                    if ( x < _newX  && y < _newY )
+                    {
+                        tempTile[x, y].X = map[x, y].X;
+                        tempTile[x, y].Y = map[x, y].Y;
+                    }
+                }
+
+        
+            initMap(ref map, _newX, _newY);
+            initMap(ref mapFullTile ,_newX, _newY);
+            for (int x = 0; x < _newX; x++)
+                for (int y = 0; y < _newY; y++)
+                {
+                    //copy the temp to the map
+                    map[x, y].X = tempTile[x, y].X;
+                    map[x, y].Y = tempTile[x, y].Y;
+                }
+        }
+
+        private void resizeMapToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (tool == null)
+            {
+
+                tool = new resizeOptionsWindows(mapX , mapY, tileSetX , tileSetY,
+                    tileWidth, tileHeigth);
+
+                //generate the delegate of the closed
+                tool.FormClosed += tool_FormClosed;
+
+                //generate the delegate of the adjust
+                tool.buttonAdjust += tool_buttonAdjust;
+
+                //show control
+                tool.Show(this);
+            }
+        }
+
+        //////////////////////////////////////tool windows////////////////////////////////////
+
     }
 }

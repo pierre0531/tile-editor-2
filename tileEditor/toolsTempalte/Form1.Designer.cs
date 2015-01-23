@@ -56,14 +56,14 @@
             this.pasteToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
+            this.buttonFull = new System.Windows.Forms.ToolStripButton();
+            this.ButtonStamp = new System.Windows.Forms.ToolStripButton();
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            this.buttonFull = new System.Windows.Forms.ToolStripButton();
-            this.ButtonStamp = new System.Windows.Forms.ToolStripButton();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -77,7 +77,6 @@
             this.panel2.TabIndex = 1;
             this.panel2.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel2_Scroll);
             this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
-            this.panel2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseClick);
             this.panel2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseDown);
             this.panel2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
             this.panel2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseUp);
@@ -152,7 +151,7 @@
             // 
             this.resizeMapToolStripMenuItem.Name = "resizeMapToolStripMenuItem";
             this.resizeMapToolStripMenuItem.Size = new System.Drawing.Size(193, 24);
-            this.resizeMapToolStripMenuItem.Text = "Resize map";
+            this.resizeMapToolStripMenuItem.Text = "Resize Options";
             this.resizeMapToolStripMenuItem.Click += new System.EventHandler(this.resizeMapToolStripMenuItem_Click);
             // 
             // addTileToolStripMenuItem
@@ -301,6 +300,35 @@
             this.helpToolStripButton.Size = new System.Drawing.Size(36, 36);
             this.helpToolStripButton.Text = "He&lp";
             // 
+            // toolStripButton1
+            // 
+            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
+            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton1.Name = "toolStripButton1";
+            this.toolStripButton1.Size = new System.Drawing.Size(36, 36);
+            this.toolStripButton1.Text = "toolStripButton1";
+            // 
+            // buttonFull
+            // 
+            this.buttonFull.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.buttonFull.Image = ((System.Drawing.Image)(resources.GetObject("buttonFull.Image")));
+            this.buttonFull.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.buttonFull.Name = "buttonFull";
+            this.buttonFull.Size = new System.Drawing.Size(36, 36);
+            this.buttonFull.Text = "toolStripButton2";
+            this.buttonFull.Click += new System.EventHandler(this.toolStripButton2_Click);
+            // 
+            // ButtonStamp
+            // 
+            this.ButtonStamp.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ButtonStamp.Image = ((System.Drawing.Image)(resources.GetObject("ButtonStamp.Image")));
+            this.ButtonStamp.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ButtonStamp.Name = "ButtonStamp";
+            this.ButtonStamp.Size = new System.Drawing.Size(36, 36);
+            this.ButtonStamp.Text = "toolStripButton3";
+            this.ButtonStamp.Click += new System.EventHandler(this.toolStripButton3_Click);
+            // 
             // propertyGrid1
             // 
             this.propertyGrid1.Location = new System.Drawing.Point(679, 477);
@@ -315,7 +343,6 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(458, 556);
             this.panel1.TabIndex = 2;
-            this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             this.panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
             this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
             // 
@@ -349,35 +376,6 @@
             this.label3.Size = new System.Drawing.Size(79, 16);
             this.label3.TabIndex = 8;
             this.label3.Text = "Tile Asset";
-            // 
-            // toolStripButton1
-            // 
-            this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
-            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(36, 36);
-            this.toolStripButton1.Text = "toolStripButton1";
-            // 
-            // buttonFull
-            // 
-            this.buttonFull.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.buttonFull.Image = ((System.Drawing.Image)(resources.GetObject("buttonFull.Image")));
-            this.buttonFull.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.buttonFull.Name = "buttonFull";
-            this.buttonFull.Size = new System.Drawing.Size(36, 36);
-            this.buttonFull.Text = "toolStripButton2";
-            this.buttonFull.Click += new System.EventHandler(this.toolStripButton2_Click);
-            // 
-            // ButtonStamp
-            // 
-            this.ButtonStamp.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.ButtonStamp.Image = ((System.Drawing.Image)(resources.GetObject("ButtonStamp.Image")));
-            this.ButtonStamp.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.ButtonStamp.Name = "ButtonStamp";
-            this.ButtonStamp.Size = new System.Drawing.Size(36, 36);
-            this.ButtonStamp.Text = "toolStripButton3";
-            this.ButtonStamp.Click += new System.EventHandler(this.toolStripButton3_Click);
             // 
             // Form1
             // 
