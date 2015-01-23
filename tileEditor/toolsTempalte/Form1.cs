@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-//using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace toolsTempalte
 {
@@ -25,7 +25,7 @@ namespace toolsTempalte
             set { looping = value; }
         }
 
-        enum paintMode {full,stamp};
+        enum paintMode {full,stamp,collision,eventTrigger,Object};
 
         paintMode m_mode;
 
@@ -64,6 +64,12 @@ namespace toolsTempalte
         bool mouseAtTileSet = false;
         int counter = 0;
         resizeOptionsWindows tool = null;
+        
+        //for collision Rect
+        
+        List<Rectangle> m_collisionRect = new List<Rectangle>();
+        int[] m_tempRect = new int[4];
+        bool makeNewRect = false;
         public Form1()
         {
             InitializeComponent();
@@ -83,12 +89,45 @@ namespace toolsTempalte
             m_mode = paintMode.stamp;
             buttonFull.Checked = false;
             ButtonStamp.Checked = true;
-
-            TextureID = TM.LoadTexture("testmap3.bmp");
+            collisionButton.Checked = false;
+       
+          //  openFile();
             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
-            panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
+
+              TextureID = TM.LoadTexture("testmap3.bmp");
+            if(TextureID != -1)
+                panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
         }
 
+        private void setMode(paintMode _paintMode)
+        {
+            buttonFull.Checked = false;
+            ButtonStamp.Checked = false;
+            collisionButton.Checked = false;
+            EventButton.Checked = false;
+            ObjectButton.Checked = false;
+            m_mode = _paintMode;
+            switch (m_mode)
+            {
+                case paintMode.full:
+                    buttonFull.Checked = true;
+                    break;
+                case paintMode.stamp:
+                    ButtonStamp.Checked = true;
+                    break;
+                case paintMode.collision:
+                    collisionButton.Checked = true;
+                    break;
+                case paintMode.eventTrigger:
+                    EventButton.Checked = true;
+                    break;
+                case paintMode.Object:
+                    ObjectButton.Checked = true;
+                    break;
+                default:
+                    break;
+            }
+        }
         private void initializeNumber()
         {
              mapX = 50;
@@ -130,8 +169,13 @@ namespace toolsTempalte
         {
 
             Render1();
-            Render2();
-            Render3();
+
+            //no tile map, so dont need to render 2 and render3
+            if (TextureID != -1)
+            {
+                Render2();
+                Render3(); 
+            }
         }
         public void Render1()
         {
@@ -153,35 +197,70 @@ namespace toolsTempalte
                 }
             }
 
-            //for render the map section
-            Rectangle src = new Rectangle();        
-            for (int x = 0; x < mapX; x++)
+            //safe check
+            if (TextureID != -1)
             {
-                for (int y = 0; y < mapY; y++)
+                //for render the map section
+                Rectangle src = new Rectangle();
+                for (int x = 0; x < mapX; x++)
                 {
+                    for (int y = 0; y < mapY; y++)
+                    {
 
-                    if (map[x, y].X == -1 && map[x, y].Y == -1)
-                        continue;
+                        if (map[x, y].X == -1 && map[x, y].Y == -1)
+                            continue;
 
-                    src.X = map[x, y].X * tileWidth;
-                    src.Y = map[x, y].Y * tileHeigth;
-                    src.Size = new Size(tileWidth, tileHeigth);
-                    int locationX = x * tileWidth + offset.X;
-                    int locationY = y * tileWidth + offset.Y;
-                    TM.Draw(TextureID, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
-                 
+                        src.X = map[x, y].X * tileWidth;
+                        src.Y = map[x, y].Y * tileHeigth;
+                        src.Size = new Size(tileWidth, tileHeigth);
+                        int locationX = x * tileWidth + offset.X;
+                        int locationY = y * tileWidth + offset.Y;
+                        TM.Draw(TextureID, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
+
+                    }
                 }
             }
 
+          
+            //draw Collision Box
+            for ( int i = 0; i < m_collisionRect.Count; i++)
+            {
+                
+                D3D.DrawHollowRect(new Rectangle(m_collisionRect[i].Left + offset.X, m_collisionRect[i].Top + offset.Y,
+                    m_collisionRect[i].Width, m_collisionRect[i].Height), Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(m_collisionRect[i].Left + offset.X, m_collisionRect[i].Top + offset.Y,
+                    m_collisionRect[i].Right + offset.X, m_collisionRect[i].Bottom + offset.Y,
+                    Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(m_collisionRect[i].Right + offset.X, m_collisionRect[i].Top + offset.Y,
+                      m_collisionRect[i].Left + offset.X, m_collisionRect[i].Bottom + offset.Y,
+                      Color.FromArgb(255, 255, 0, 0), 3);
+            }
+
             //render the preview and mouse
+            if (TextureID != -1)
+            {
+                switch (m_mode)
+                {
+
+                    case paintMode.full:
+                        renderPreviewFull();
+                        break;
+                    case paintMode.stamp:
+                        renderPreviewStamp();
+                        break;
+                 
+                    default:
+                        break;
+                }
+            }
+
             switch (m_mode)
             {
-
-                case paintMode.full:
-                    renderPreviewFull();
-                    break;
-                case paintMode.stamp:
-                    renderPreviewStamp();
+             
+                case paintMode.collision:
+                    renderPreviewCollision();
                     break;
                 default:
                     break;
@@ -193,6 +272,27 @@ namespace toolsTempalte
             D3D.Present();
         }
 
+
+        //preview collision Zone Rect
+        private void renderPreviewCollision()
+        {
+            if (makeNewRect)
+            {
+                int x1 = minor(m_tempRect[0], m_tempRect[2]);
+                int y1 = minor(m_tempRect[1], m_tempRect[3]);
+
+                int x2 = major(m_tempRect[0], m_tempRect[2]);
+                int y2 = major(m_tempRect[1], m_tempRect[3]);
+
+                D3D.DrawHollowRect(new Rectangle(x1,y1,x2-x1,y2-y1), Color.FromArgb(255, 128, 0, 0), 3);
+
+                D3D.DrawLine(x1, y1,x2,y2,  Color.FromArgb(255, 128, 0, 0), 3);
+
+                D3D.DrawLine(x2, y1, x1, y2, Color.FromArgb(255, 128, 0, 0), 3);
+
+            }
+       
+        }
         private void renderPreviewFull()
         {
             Point offset = panel1.AutoScrollPosition;
@@ -307,7 +407,25 @@ namespace toolsTempalte
             D3D.SpriteBegin();
 
             Rectangle src = new Rectangle();
+            //calculate scale on panel3
+            int scaleX = mapX * tileWidth / panel3.Size.Width;
+            int scaleY = mapY * tileHeigth / panel3.Size.Height;
 
+            //safe check
+            if (scaleX <= 0)
+                scaleX = 1;
+            else
+                scaleX += 1;
+
+            if (scaleY <= 0)
+                scaleY = 1;
+            else
+                scaleY += 1;
+
+            if (scaleX >= scaleY)
+                scaleY = scaleX;
+            else
+                scaleX = scaleY;
             //for render the map section
             for (int x = 0; x < mapX; x++)
             {
@@ -321,30 +439,28 @@ namespace toolsTempalte
                     src.Y = map[x, y].Y * tileHeigth;
                     src.Size = new Size(tileWidth, tileHeigth);
                   
-                    //calculate scale on panel3
-                    int scaleX = mapX * tileWidth /panel3.Size.Width;                    
-                    int scaleY = mapY * tileHeigth/ panel3.Size.Height;
-
-                    //safe check
-                    if (scaleX <= 0)
-                        scaleX = 1;
-                    else
-                        scaleX += 1;
                    
-                    if (scaleY <= 0)
-                        scaleY = 1;
-                    else
-                        scaleY += 1;
-
-                    if (scaleX >= scaleY)
-                        scaleY = scaleX;
-                    else
-                        scaleX = scaleY;
                     
                     TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY,
                         1 / (float)scaleX, 1 / (float)scaleY, src);
 
                 }
+            }
+
+            //draw Collision Box
+            for (int i = 0; i < m_collisionRect.Count; i++)
+            {
+
+                D3D.DrawHollowRect(new Rectangle(m_collisionRect[i].Left / scaleX, m_collisionRect[i].Top / scaleY,
+                    m_collisionRect[i].Width / scaleX, m_collisionRect[i].Height / scaleY), Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(m_collisionRect[i].Left / scaleX, m_collisionRect[i].Top / scaleY,
+                    m_collisionRect[i].Right / scaleX, m_collisionRect[i].Bottom / scaleY,
+                    Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(m_collisionRect[i].Right / scaleX, m_collisionRect[i].Top / scaleY,
+                      m_collisionRect[i].Left / scaleX, m_collisionRect[i].Bottom / scaleY,
+                      Color.FromArgb(255, 255, 0, 0), 3);
             }
 
             D3D.SpriteEnd();
@@ -436,7 +552,18 @@ namespace toolsTempalte
             }
         }
 
-       // private
+        private void storageCollisionRect(int _x, int _y)
+        {
+            //it can show right now
+            makeNewRect = true;
+
+            //tempRect info for [0],[1],[2],[3]
+            m_tempRect[0] = _x;
+            m_tempRect[1] = _y;
+            m_tempRect[2] = _x;
+            m_tempRect[3] = _y;
+            
+        }
     
         private void storageFullTile()
         {
@@ -643,6 +770,9 @@ namespace toolsTempalte
         }
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
+             if (outOfRangeMap(e))
+                return;
+
             //Caculate where is the mouse
             int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
             int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
@@ -650,20 +780,31 @@ namespace toolsTempalte
             switch (m_mode)
             {
                 case paintMode.full:
-                    fullMouseMove(x,y,e);
                     break;
                 case paintMode.stamp:
-                    stampMouseMove(x,y,e);
+                    stampMouseMove(x, y,e);
+                    break;
+                case paintMode.collision:
+                    makeCollisionRect(e.Location.X, e.Location.Y);
+                    break;
+                case paintMode.eventTrigger:
+                    break;
+                case paintMode.Object:
                     break;
                 default:
                     break;
             }
-          
+         
         }
 
 
-      
+     
+        private void makeCollisionRect(int _x, int _y)
+        {
+            m_tempRect[2] = _x;
+            m_tempRect[3] = _y;
 
+        }
      
 
         private void panel2_MouseMove(object sender, MouseEventArgs e)
@@ -775,7 +916,6 @@ namespace toolsTempalte
 
             //make hover
             hoverTileCollection = new Tile[x2 - x1, y2 - y1];
-
         }
 
 
@@ -798,16 +938,16 @@ namespace toolsTempalte
 
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
-            m_mode = paintMode.full;
-            buttonFull.Checked = true;
-            ButtonStamp.Checked = false;
+            setMode(paintMode.full);
+            //m_mode = paintMode.full;
+            //buttonFull.Checked = true;
+            //ButtonStamp.Checked = false;
         }
 
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
-            m_mode = paintMode.stamp;
-            buttonFull.Checked = false;
-            ButtonStamp.Checked = true;
+            setMode(paintMode.stamp);
+        
         }
 
 
@@ -853,15 +993,6 @@ namespace toolsTempalte
         }
         void setTheScroll()
         {
-            //set the scroll of the tile part 
-            //panel1.AutoScrollMinSize = tilePic.Size;
-
-            ////set the scroll of the map part
-            //Size temp = new Size();
-            //temp.Width = mapX  * tileSetX ;
-            //temp.Height = mapY * tileSetY;
-            //panel1.AutoScrollMinSize = temp;
-
             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
         }
         void resetMapSize(int _oldX, int _oldY, int _newX, int _newY)
@@ -912,6 +1043,116 @@ namespace toolsTempalte
             }
         }
 
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            openFile();
+
+            panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
+
+        }
+
+        private void openFile()
+        {  //Create an open file
+            OpenFileDialog open = new OpenFileDialog();
+
+            //set the filter
+            open.Filter = "Tile Files(*.bmp)|*.bmp|Tile Files(*.gif)|*.gif|Tile Files(*.png)|*.png|All Files(*.*)|*.*";
+
+            if (DialogResult.OK == open.ShowDialog())
+            {
+                //Open a stream for reading
+
+                //  tilePic = new Bitmap(open.FileName);
+                TextureID = TM.LoadTexture(open.FileName);
+
+                setTheScroll();
+            }
+        }
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void toolStripButton2_Click_1(object sender, EventArgs e)
+        {
+            setMode(paintMode.collision);
+        }
+
+        private void panel1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (outOfRangeMap(e))
+                return;
+
+            //Caculate where is the mouse
+            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
+            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
+
+
+            if (m_mode == paintMode.collision)
+                storageCollisionRect(e.Location.X, e.Location.Y);
+            else
+            {
+            }
+        }
+
+        private void panel1_MouseUp(object sender, MouseEventArgs e)
+        {
+            //calculate which selection area
+            calculateRect();
+        }
+
+        private void calculateRect()
+        {
+            //it can show right now
+            makeNewRect = false;
+
+            //know the selectedTile info
+            int x1 = m_tempRect[0];
+            int y1 = m_tempRect[1];
+
+            //send the x and y postion to stampSelectedTile
+            int x2 = m_tempRect[2];
+            int y2 = m_tempRect[3];
+
+            if (x2 < x1)
+            {
+                int temp = x1;
+                x1 = x2;
+                x2 = temp;
+            }
+
+            if (y2 < y1)
+            {
+                int temp = y1;
+                y1 = y2;
+                y2 = temp;
+            }
+
+            
+            //send the swap number back
+           m_tempRect[0] = x1;
+           m_tempRect[1] = y1;
+
+           m_tempRect[2] = x2;
+           m_tempRect[3] = y2;
+
+            //adjust to the real position
+           m_tempRect[0] -= panel1.AutoScrollPosition.X;
+           m_tempRect[1] -= panel1.AutoScrollPosition.Y;
+           m_tempRect[2] -= panel1.AutoScrollPosition.X;
+           m_tempRect[3] -= panel1.AutoScrollPosition.Y;
+            //make Rect
+           Rectangle tempRect;
+           tempRect = new Rectangle(new Point(m_tempRect[0], m_tempRect[1]), new Size(m_tempRect[2] - m_tempRect[0],
+                m_tempRect[3] - m_tempRect[1]));
+
+           m_collisionRect.Add(tempRect);
+        }
         //////////////////////////////////////tool windows////////////////////////////////////
 
     }
