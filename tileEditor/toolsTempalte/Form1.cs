@@ -8,8 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using System.Collections.Generic;
-
 namespace toolsTempalte
 {
     public partial class Form1 : Form
@@ -42,34 +40,33 @@ namespace toolsTempalte
         //The current selected tile
         Tile selectedTile;
         Tile stampSelectedTile;
+        BucketCollection m_bucketColletion = new BucketCollection();
         //The mouse move
         Tile hoverTile;
         Tile[,] hoverTileCollection;
-        BucketCollection m_bucketColletion = new BucketCollection();
-
-        //map data
-       // Size mapSizeSet ;
-                        
-        //tile grid     
-     //   Size tileSizeSet;
-                        
-        //tile data     
-     //   Size tileSize  ;
-
+  
         //an 5x5 tile array 
         Tile[,] map ;
         Tile[,] mapFullTile;
         Tile[,] tempTile;
+
         //for stamp effect
         bool mouseAtTileSet = false;
         int counter = 0;
         resizeOptionsWindows tool = null;
         
         //for collision Rect
-        
-        List<Rectangle> m_collisionRect = new List<Rectangle>();
-        int[] m_tempRect = new int[4];
         bool makeNewRect = false;
+        List<Event_Collision_Object_Rect> m_collisionRect = new List<Event_Collision_Object_Rect>();
+        int[] m_tempRect = new int[4];
+      
+        //for eventTrigger
+        List<Event_Collision_Object_Rect> m_eventRect = new List<Event_Collision_Object_Rect>();
+
+        //for eventTrigger
+        List<Event_Collision_Object_Rect> m_objectPt = new List<Event_Collision_Object_Rect>();
+
+        bool[] m_showLayer = new bool[4];
         public Form1()
         {
             InitializeComponent();
@@ -90,13 +87,14 @@ namespace toolsTempalte
             buttonFull.Checked = false;
             ButtonStamp.Checked = true;
             collisionButton.Checked = false;
-       
-          //  openFile();
+               
             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
 
-              TextureID = TM.LoadTexture("testmap3.bmp");
+            TextureID = TM.LoadTexture("testmap3.bmp");
             if(TextureID != -1)
                 panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
+
+        
         }
 
         private void setMode(paintMode _paintMode)
@@ -106,6 +104,7 @@ namespace toolsTempalte
             collisionButton.Checked = false;
             EventButton.Checked = false;
             ObjectButton.Checked = false;
+  
             m_mode = _paintMode;
             switch (m_mode)
             {
@@ -139,14 +138,12 @@ namespace toolsTempalte
              tileWidth = 32;
              tileHeigth = 32;
 
-            //map data
-            // mapSizeSet = new Size(5, 5);
-
-            ////tile grid
-            // tileSizeSet = new Size(5, 5);
-
-            ////tile data
-            // tileSize = new Size(32, 32);
+            //draw all the layer default
+             MapCheckBox.Checked = true;
+             EventCheckBox.Checked = true;
+             ObjectCheckBox.Checked = true;
+             CollisionCheckBox.Checked = true;
+             checkBoxGrid.Checked = true;
         }
         private void initMap(ref Tile[,] _map, int _mapX, int _mapY)
         {
@@ -184,10 +181,11 @@ namespace toolsTempalte
             D3D.DeviceBegin();
             D3D.SpriteBegin();
 
-            //   D3D.DrawText("Hello world!",20,20,Color.Beige);
+         
 
             //Draw the hollow Rect 
             Point offset = panel1.AutoScrollPosition;
+            if(checkBoxGrid.Checked)
             for (int x = 0; x < mapX; x++)
             {
                 for (int y = 0; y < mapY; y++)
@@ -198,6 +196,7 @@ namespace toolsTempalte
             }
 
             //safe check
+            if(MapCheckBox.Checked == true)
             if (TextureID != -1)
             {
                 //for render the map section
@@ -221,22 +220,8 @@ namespace toolsTempalte
                 }
             }
 
-          
-            //draw Collision Box
-            for ( int i = 0; i < m_collisionRect.Count; i++)
-            {
-                
-                D3D.DrawHollowRect(new Rectangle(m_collisionRect[i].Left + offset.X, m_collisionRect[i].Top + offset.Y,
-                    m_collisionRect[i].Width, m_collisionRect[i].Height), Color.FromArgb(255, 255, 0, 0), 3);
-
-                D3D.DrawLine(m_collisionRect[i].Left + offset.X, m_collisionRect[i].Top + offset.Y,
-                    m_collisionRect[i].Right + offset.X, m_collisionRect[i].Bottom + offset.Y,
-                    Color.FromArgb(255, 255, 0, 0), 3);
-
-                D3D.DrawLine(m_collisionRect[i].Right + offset.X, m_collisionRect[i].Top + offset.Y,
-                      m_collisionRect[i].Left + offset.X, m_collisionRect[i].Bottom + offset.Y,
-                      Color.FromArgb(255, 255, 0, 0), 3);
-            }
+            drawBox();
+            
 
             //render the preview and mouse
             if (TextureID != -1)
@@ -258,8 +243,8 @@ namespace toolsTempalte
 
             switch (m_mode)
             {
-             
-                case paintMode.collision:
+                case paintMode.eventTrigger:
+                case paintMode.collision:            
                     renderPreviewCollision();
                     break;
                 default:
@@ -272,7 +257,80 @@ namespace toolsTempalte
             D3D.Present();
         }
 
+        private void drawBox()
+        {
+            if (EventCheckBox.Checked == true)
+            drawEventBox();
 
+            if (CollisionCheckBox.Checked == true)
+            drawCollisionBox();
+
+            if (ObjectCheckBox.Checked == true)
+            drawObjectBox();
+        }
+
+       
+         private void drawObjectBox()
+        { 
+             //draw Collision Box
+            Point offset = panel1.AutoScrollPosition;
+            for (int i = 0; i < m_objectPt.Count; i++)
+            {
+                int locationX = m_objectPt[i].Rect.Left + offset.X;
+                int locationY = m_objectPt[i].Rect.Top  + offset.Y;
+                D3D.DrawText(m_objectPt[i].Name, locationX, locationY, Color.FromArgb(255, 128, 128, 128));
+                D3D.DrawHollowRect(new Rectangle(locationX , locationY,
+                    m_objectPt[i].Rect.Width, m_objectPt[i].Rect.Height), Color.FromArgb(255, 128, 128, 128), 3);
+                
+                //draw highlight
+                if (i == listBoxObject.SelectedIndex && ObjectButton.Checked)
+                    D3D.DrawRect(new Rectangle(locationX, locationY ,
+                    m_objectPt[i].Rect.Width, m_objectPt[i].Rect.Height), Color.FromArgb(128, 128, 128, 128));
+            }
+         }
+        private void drawEventBox()
+        {
+            //draw Event Box
+            Point offset = panel1.AutoScrollPosition;
+            for (int i = 0; i < m_eventRect.Count; i++)
+            {
+                int locationX = m_eventRect[i].Rect.Left + offset.X;
+                int locationY =  m_eventRect[i].Rect.Top + offset.Y;
+                D3D.DrawText(m_eventRect[i].Name, locationX, locationY, Color.FromArgb(255, 0, 128, 0));
+                D3D.DrawHollowRect(new Rectangle(locationX, locationY,
+                    m_eventRect[i].Rect.Width, m_eventRect[i].Rect.Height), Color.FromArgb(255, 0, 128, 0), 3);
+                
+                //draw highlight
+                if (i == listBoxEvent.SelectedIndex && EventButton.Checked)
+                    D3D.DrawRect(new Rectangle(locationX , locationY ,
+                    m_eventRect[i].Rect.Width, m_eventRect[i].Rect.Height), Color.FromArgb(128, 0, 128, 0));
+            }
+        }
+        private void drawCollisionBox()
+        {  //draw Collision Box
+            Point offset = panel1.AutoScrollPosition;
+            for (int i = 0; i < m_collisionRect.Count; i++)
+            {
+                int locationX = m_collisionRect[i].Rect.Left + offset.X;
+                int locationY = m_collisionRect[i].Rect.Top + offset.Y;
+
+                D3D.DrawHollowRect(new Rectangle(locationX, locationY,
+                    m_collisionRect[i].Rect.Width, m_collisionRect[i].Rect.Height), Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(locationX, locationY,
+                    m_collisionRect[i].Rect.Right + offset.X, m_collisionRect[i].Rect.Bottom + offset.Y,
+                    Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(m_collisionRect[i].Rect.Right + offset.X, locationY,
+                      m_collisionRect[i].Rect.Left + offset.X, m_collisionRect[i].Rect.Bottom + offset.Y,
+                      Color.FromArgb(255, 255, 0, 0), 3);
+                
+                //draw highlight
+                if (i == listBoxCollision.SelectedIndex && collisionButton.Checked)
+                    D3D.DrawRect(new Rectangle(locationX, locationY,
+                    m_collisionRect[i].Rect.Width, m_collisionRect[i].Rect.Height), Color.FromArgb(128, 255, 0, 0));
+            } 
+        }
         //preview collision Zone Rect
         private void renderPreviewCollision()
         {
@@ -284,11 +342,20 @@ namespace toolsTempalte
                 int x2 = major(m_tempRect[0], m_tempRect[2]);
                 int y2 = major(m_tempRect[1], m_tempRect[3]);
 
-                D3D.DrawHollowRect(new Rectangle(x1,y1,x2-x1,y2-y1), Color.FromArgb(255, 128, 0, 0), 3);
-
-                D3D.DrawLine(x1, y1,x2,y2,  Color.FromArgb(255, 128, 0, 0), 3);
-
-                D3D.DrawLine(x2, y1, x1, y2, Color.FromArgb(255, 128, 0, 0), 3);
+                switch (m_mode)
+                {
+                    case paintMode.eventTrigger:
+                        D3D.DrawHollowRect(new Rectangle(x1, y1, x2 - x1, y2 - y1), Color.FromArgb(255, 0, 255, 0), 3);
+                        break;
+                    case paintMode.collision:
+                          D3D.DrawHollowRect(new Rectangle(x1,y1,x2-x1,y2-y1), Color.FromArgb(255, 128, 0, 0), 3);
+                          D3D.DrawLine(x1, y1,x2,y2,  Color.FromArgb(255, 128, 0, 0), 3);
+                          D3D.DrawLine(x2, y1, x1, y2, Color.FromArgb(255, 128, 0, 0), 3);
+                        break;
+                    default:
+                        break;
+                }
+              
 
             }
        
@@ -375,8 +442,7 @@ namespace toolsTempalte
                 {
                     D3D.DrawRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y,
                         tileWidth, tileHeigth), Color.FromArgb(128, 0, 255, 0));
-                    //  D3D.DrawHollowRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y, tileWidth, tileHeigth), Color.FromArgb(255, 255, 0, 0), 3);
-
+                   
                 }
             }
                        
@@ -400,13 +466,108 @@ namespace toolsTempalte
             else
                 return y;
         }
+
+        private void miniMapDrawBox(int _scaleX,int _scaleY)
+        {
+            if(MapCheckBox.Checked == true)
+            miniMapDrawMap(_scaleX, _scaleY);
+
+            if (EventCheckBox.Checked == true)
+            miniMapDrawEvent(_scaleX, _scaleY);
+
+            if (ObjectCheckBox.Checked == true)
+            miniMapDrawObject(_scaleX, _scaleY);
+
+            if (CollisionCheckBox.Checked == true)
+            miniMapDrawCollision(_scaleX, _scaleY);
+        }
+
+        private void miniMapDrawMap(int scaleX, int scaleY)
+        {
+            Rectangle src = new Rectangle();
+
+            //for render the map section
+            for (int x = 0; x < mapX; x++)
+            {
+                for (int y = 0; y < mapY; y++)
+                {
+
+                    if (map[x, y].X == -1 && map[x, y].Y == -1)
+                        continue;
+
+                    src.X = map[x, y].X * tileWidth;
+                    src.Y = map[x, y].Y * tileHeigth;
+                    src.Size = new Size(tileWidth, tileHeigth);
+
+                    TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY,
+                        1 / (float)scaleX, 1 / (float)scaleY, src);
+                }
+            } 
+        }
+
+        //draw event on mini map
+        private void miniMapDrawEvent(int scaleX, int scaleY)
+        {
+            //draw event Box
+            for (int i = 0; i < m_eventRect.Count; i++)
+            {
+
+                D3D.DrawHollowRect(new Rectangle(m_eventRect[i].Rect.Left / scaleX, m_eventRect[i].Rect.Top / scaleY,
+                    m_eventRect[i].Rect.Width / scaleX, m_eventRect[i].Rect.Height / scaleY), Color.FromArgb(255, 0, 128, 0), 3);
+              
+                //draw highlight
+                if (i == listBoxEvent.SelectedIndex && EventButton.Checked)
+                    D3D.DrawRect(new Rectangle(m_eventRect[i].Rect.Left / scaleX, m_eventRect[i].Rect.Top / scaleY,
+                    m_eventRect[i].Rect.Width / scaleX, m_eventRect[i].Rect.Height / scaleY), Color.FromArgb(128, 0, 128, 0));
+            }
+        }
+        private void miniMapDrawObject(int scaleX, int scaleY)
+        {
+            //draw object Box
+            for (int i = 0; i < m_objectPt.Count; i++)
+            {
+
+                D3D.DrawHollowRect(new Rectangle(m_objectPt[i].Rect.Left / scaleX, m_objectPt[i].Rect.Top / scaleY,
+                    m_objectPt[i].Rect.Width / scaleX, m_objectPt[i].Rect.Height / scaleY), Color.FromArgb(255, 128, 128, 128), 3);
+               
+                //draw highlight
+                if (i == listBoxObject.SelectedIndex && ObjectButton.Checked)
+                    D3D.DrawRect(new Rectangle(m_objectPt[i].Rect.Left / scaleX, m_objectPt[i].Rect.Top / scaleY,
+                    m_objectPt[i].Rect.Width / scaleX, m_objectPt[i].Rect.Height / scaleY), Color.FromArgb(128, 128, 128, 128));
+            }
+
+        }
+
+        private void miniMapDrawCollision(int scaleX, int scaleY)
+        {
+            //draw Collision Box
+            for (int i = 0; i < m_collisionRect.Count; i++)
+            {
+
+                D3D.DrawHollowRect(new Rectangle(m_collisionRect[i].Rect.Left / scaleX, m_collisionRect[i].Rect.Top / scaleY,
+                    m_collisionRect[i].Rect.Width / scaleX, m_collisionRect[i].Rect.Height / scaleY), Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(m_collisionRect[i].Rect.Left / scaleX, m_collisionRect[i].Rect.Top / scaleY,
+                    m_collisionRect[i].Rect.Right / scaleX, m_collisionRect[i].Rect.Bottom / scaleY,
+                    Color.FromArgb(255, 255, 0, 0), 3);
+
+                D3D.DrawLine(m_collisionRect[i].Rect.Right / scaleX, m_collisionRect[i].Rect.Top / scaleY,
+                      m_collisionRect[i].Rect.Left / scaleX, m_collisionRect[i].Rect.Bottom / scaleY,
+                      Color.FromArgb(255, 255, 0, 0), 3);
+                
+                //draw highlight
+                if (i == listBoxCollision.SelectedIndex && collisionButton.Checked)
+                    D3D.DrawRect(new Rectangle(m_collisionRect[i].Rect.Left / scaleX, m_collisionRect[i].Rect.Top / scaleY,
+                    m_collisionRect[i].Rect.Width / scaleX, m_collisionRect[i].Rect.Height / scaleY), Color.FromArgb(128, 255, 0, 0));
+            }
+        }
         void Render3()
         {
             D3D.Clear(panel3, Color.WhiteSmoke);
             D3D.DeviceBegin();
             D3D.SpriteBegin();
 
-            Rectangle src = new Rectangle();
+           
             //calculate scale on panel3
             int scaleX = mapX * tileWidth / panel3.Size.Width;
             int scaleY = mapY * tileHeigth / panel3.Size.Height;
@@ -426,43 +587,10 @@ namespace toolsTempalte
                 scaleY = scaleX;
             else
                 scaleX = scaleY;
-            //for render the map section
-            for (int x = 0; x < mapX; x++)
-            {
-                for (int y = 0; y < mapY; y++)
-                {
 
-                    if (map[x, y].X == -1 && map[x, y].Y == -1)
-                        continue;
-
-                    src.X = map[x, y].X * tileWidth;
-                    src.Y = map[x, y].Y * tileHeigth;
-                    src.Size = new Size(tileWidth, tileHeigth);
-                  
-                   
-                    
-                    TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY,
-                        1 / (float)scaleX, 1 / (float)scaleY, src);
-
-                }
-            }
-
-            //draw Collision Box
-            for (int i = 0; i < m_collisionRect.Count; i++)
-            {
-
-                D3D.DrawHollowRect(new Rectangle(m_collisionRect[i].Left / scaleX, m_collisionRect[i].Top / scaleY,
-                    m_collisionRect[i].Width / scaleX, m_collisionRect[i].Height / scaleY), Color.FromArgb(255, 255, 0, 0), 3);
-
-                D3D.DrawLine(m_collisionRect[i].Left / scaleX, m_collisionRect[i].Top / scaleY,
-                    m_collisionRect[i].Right / scaleX, m_collisionRect[i].Bottom / scaleY,
-                    Color.FromArgb(255, 255, 0, 0), 3);
-
-                D3D.DrawLine(m_collisionRect[i].Right / scaleX, m_collisionRect[i].Top / scaleY,
-                      m_collisionRect[i].Left / scaleX, m_collisionRect[i].Bottom / scaleY,
-                      Color.FromArgb(255, 255, 0, 0), 3);
-            }
-
+            //draw mini map
+            miniMapDrawBox(scaleX, scaleY);
+        
             D3D.SpriteEnd();
             D3D.DeviceEnd();
             D3D.Present(); 
@@ -547,39 +675,20 @@ namespace toolsTempalte
                 storageTile(x, y);
             else if (m_mode == paintMode.full)
                 storageFullTile();
-            else
-            {
+            else if (m_mode == paintMode.Object)
+            { 
+                storageCollisionRect(e.Location.X, e.Location.Y);
+             //   calculateRect();
             }
+               
         }
 
-        private void storageCollisionRect(int _x, int _y)
-        {
-            //it can show right now
-            makeNewRect = true;
-
-            //tempRect info for [0],[1],[2],[3]
-            m_tempRect[0] = _x;
-            m_tempRect[1] = _y;
-            m_tempRect[2] = _x;
-            m_tempRect[3] = _y;
-            
-        }
+     
     
         private void storageFullTile()
         {
             copyMapInfo(ref mapFullTile,ref map,false);
             m_bucketColletion.ShowBluePath = false;
-            //map = mapFullTile;
-            //for (int x = 0; x < mapX; x++)
-            //{
-            //    for (int y = 0; y < mapY; y++)
-            //    {
-            //        map = mapFullTile;
-            //        map[x,y].X = mapFullTile[x,y].X;
-            //        map[x,y].Y = mapFullTile[x,y].Y;
-            //    }
-            //}
-               
         }
 
         private void copyMapInfo(ref Tile[,] _src, ref Tile[,] _target,bool totalCopy)
@@ -650,51 +759,72 @@ namespace toolsTempalte
             //center
             tempX = _startX;
             tempY = _startY;
-  
 
+            limitRecursiveXY(ref tempX, ref tempY);
+
+            ////only chech while the tile is not check
+            if (mapFullTile[tempX, tempY].CheckForBucket != true)
+            ////error check for not out of range
+            //if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
 
             //top
             tempX = _startX;
             tempY = _startY - 1;
-
+            limitRecursiveXY(ref tempX, ref tempY);
+            ////only chech while the tile is not check
+             if (mapFullTile[tempX, tempY].CheckForBucket != true)
+            //    //error check for not out of range
+            // if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
              recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
     
 
             //down
             tempX = _startX;
             tempY = _startY + 1;
-
+            limitRecursiveXY(ref tempX, ref tempY);
+            ////only chech while the tile is not check
+            if (mapFullTile[tempX, tempY].CheckForBucket != true)
+            //    //error check for not out of range
+            //    if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
        
 
             //left
             tempX = _startX - 1;
             tempY = _startY ;
-
+            limitRecursiveXY(ref tempX, ref tempY);
+            ////only chech while the tile is not check
+            if (mapFullTile[tempX, tempY].CheckForBucket != true)
+            //    //error check for not out of range
+            //    if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
        
             //right
             tempX = _startX + 1;
             tempY = _startY ;
-
+            limitRecursiveXY(ref tempX, ref tempY);
+            ////only chech while the tile is not check
+            if (mapFullTile[tempX, tempY].CheckForBucket != true)
+            //    //error check for not out of range
+            //    if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
    
         }
 
         private void recursiveCheck(int tempX, int tempY, int _checkTileX, int _checkTileY)
         {
-            counter++;
+            //counter++;
 
-            limitRecursiveXY(ref tempX, ref tempY);
+            //limitRecursiveXY(ref tempX, ref tempY);
 
-            //only chech while the tile is not check
-            if (mapFullTile[tempX, tempY].CheckForBucket == true)
-                return;
+            ////only chech while the tile is not check
+            //if (mapFullTile[tempX, tempY].CheckForBucket == true)
+            //    return;
 
-            //error check for not out of range
-            if (tempX >= mapX || tempY >= mapY || tempX <0 || tempY< 0)
-                return;
+            ////error check for not out of range
+            //if (tempX >= mapX || tempY >= mapY || tempX <0 || tempY< 0)
+            //    return;
 
             //if the same, storage selected tile to the map
             if (mapFullTile[tempX, tempY].X == _checkTileX && mapFullTile[tempX, tempY].Y == _checkTileY)
@@ -705,7 +835,7 @@ namespace toolsTempalte
                 mapFullTile[tempX, tempY].Y = selectedTile.Y;
                 mapFullTile[tempX, tempY].CheckForBucket = true;
                 mapFullTile[tempX, tempY].PreviewOnMap = true;
-
+                counter++;
                 //go to next cursive point
                 recursiveTile(tempX, tempY, _checkTileX, _checkTileY);
             }
@@ -780,6 +910,7 @@ namespace toolsTempalte
             switch (m_mode)
             {
                 case paintMode.full:
+                    fullMouseMove(x, y, e);
                     break;
                 case paintMode.stamp:
                     stampMouseMove(x, y,e);
@@ -788,6 +919,7 @@ namespace toolsTempalte
                     makeCollisionRect(e.Location.X, e.Location.Y);
                     break;
                 case paintMode.eventTrigger:
+                    makeCollisionRect(e.Location.X, e.Location.Y);
                     break;
                 case paintMode.Object:
                     break;
@@ -939,9 +1071,7 @@ namespace toolsTempalte
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
             setMode(paintMode.full);
-            //m_mode = paintMode.full;
-            //buttonFull.Checked = true;
-            //ButtonStamp.Checked = false;
+     
         }
 
         private void toolStripButton3_Click(object sender, EventArgs e)
@@ -1043,7 +1173,7 @@ namespace toolsTempalte
             }
         }
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        private void ImportAsset_Click(object sender, EventArgs e)
         {
             openFile();
 
@@ -1078,9 +1208,10 @@ namespace toolsTempalte
 
         }
 
-        private void toolStripButton2_Click_1(object sender, EventArgs e)
+        private void collisionButton_Click(object sender, EventArgs e)
         {
             setMode(paintMode.collision);
+            tabEditLayer.SelectedTab = tabPageCollision;
         }
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
@@ -1095,11 +1226,26 @@ namespace toolsTempalte
 
             if (m_mode == paintMode.collision)
                 storageCollisionRect(e.Location.X, e.Location.Y);
-            else
-            {
-            }
+            else if (m_mode == paintMode.eventTrigger)
+                storageCollisionRect(e.Location.X, e.Location.Y);
+          
+            else { }
         }
 
+       
+
+        private void storageCollisionRect(int _x, int _y)
+        {
+            //it can show right now
+            makeNewRect = true;
+            
+            //tempRect info for [0],[1],[2],[3]
+            m_tempRect[0] = _x;
+            m_tempRect[1] = _y;
+            m_tempRect[2] = _x;
+            m_tempRect[3] = _y;
+
+        }
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
             //calculate which selection area
@@ -1146,13 +1292,329 @@ namespace toolsTempalte
            m_tempRect[1] -= panel1.AutoScrollPosition.Y;
            m_tempRect[2] -= panel1.AutoScrollPosition.X;
            m_tempRect[3] -= panel1.AutoScrollPosition.Y;
-            //make Rect
-           Rectangle tempRect;
-           tempRect = new Rectangle(new Point(m_tempRect[0], m_tempRect[1]), new Size(m_tempRect[2] - m_tempRect[0],
+
+           //make Rect
+            Rectangle tempRect = new Rectangle(new Point(m_tempRect[0], m_tempRect[1]), new Size(m_tempRect[2] - m_tempRect[0],
                 m_tempRect[3] - m_tempRect[1]));
 
-           m_collisionRect.Add(tempRect);
+           Event_Collision_Object_Rect tempEventRect = new Event_Collision_Object_Rect();
+           tempEventRect.Rect = tempRect;
+
+          
+           switch (m_mode)
+           {         
+               case paintMode.collision:
+                   m_collisionRect.Add(tempEventRect);
+                   listBoxCollision.Items.Add(tempEventRect);
+                   break;
+               case paintMode.eventTrigger:
+                   m_eventRect.Add(tempEventRect);
+                   listBoxEvent.Items.Add(tempEventRect);
+                   break;
+               case paintMode.Object:                                               
+                   tempEventRect.Size = new Size(20, 20);
+                   m_objectPt.Add(tempEventRect);
+                   listBoxObject.Items.Add(tempEventRect);
+                   
+                   break;
+               default:
+                   break;
+           }
+         
         }
+
+        private void EventButton_Click(object sender, EventArgs e)
+        {
+            setMode(paintMode.eventTrigger);
+            tabEditLayer.SelectedTab = tabPageEvent;
+        }
+
+        private void ObjectButton_Click(object sender, EventArgs e)
+        {
+            setMode(paintMode.Object);
+            tabEditLayer.SelectedTab = tabPageObject;
+        }
+
+       
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        //box collision//
+        //***************************************************************************************//
+        private void listBoxCollision_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (listBoxCollision.SelectedIndex == -1)
+                return;
+
+            Event_Collision_Object_Rect r = (Event_Collision_Object_Rect)listBoxCollision.Items[listBoxCollision.SelectedIndex];
+          
+            numCollision_top.Value = r.Rect.Top;
+            numCollision_left.Value = r.Rect.Left;
+            numCollision_right.Value = r.Rect.Right;
+            numCollision_bottom.Value = r.Rect.Bottom;
+        }
+        private void buttonCollisionDelete_Click(object sender, EventArgs e)
+        {
+            if (listBoxCollision.SelectedIndex == -1)
+                return;
+
+            int tempIndex = listBoxCollision.SelectedIndex;
+            listBoxCollision.Items.RemoveAt(tempIndex);
+            m_collisionRect.RemoveAt(tempIndex);
+
+        }
+
+        private void buttonUpdateCollisioin_Click(object sender, EventArgs e)
+        {
+            if (listBoxCollision.SelectedIndex == -1)
+                return;
+
+            Rectangle tempRectangle = new Rectangle();
+            Event_Collision_Object_Rect tempEventRetangle = new Event_Collision_Object_Rect();
+            //get the number info
+            int bottom = (int)numCollision_bottom.Value;
+            int right = (int)numCollision_right.Value;
+            int top = (int)numCollision_top.Value;
+            int left = (int)numCollision_left.Value;
+            int width = right - left;
+            int height = bottom - top;
+
+            //safe check
+            if (width <= 0)
+                width = 0;
+            if (height <= 0)
+                height = 0;
+
+        
+            //copy info to the rect
+            tempRectangle.Location = new Point(left, top);
+            tempRectangle.Width = width;
+            tempRectangle.Height = height;
+
+            //copy rect back
+            tempEventRetangle.Rect = tempRectangle;
+
+            //old one index
+            int tempIndex = listBoxCollision.SelectedIndex;
+
+            //insert a new one
+            listBoxCollision.Items.Insert(tempIndex, tempEventRetangle);
+            m_collisionRect.Insert(tempIndex, tempEventRetangle);
+
+            //remove the old one
+            listBoxCollision.Items.RemoveAt(tempIndex + 1);
+            m_collisionRect.RemoveAt(tempIndex + 1);
+            
+            listBoxCollision.SelectedIndex = tempIndex;
+      
+        }
+
+        //box event//
+        //***************************************************************************************//
+
+
+        private void buttonUpdateEvent_Click(object sender, EventArgs e)
+        {
+            if (listBoxEvent.SelectedIndex == -1)
+                return;
+
+            Rectangle tempRectangle = new Rectangle();
+            Event_Collision_Object_Rect tempEventRetangle = new Event_Collision_Object_Rect();
+            //get the number info
+            int bottom = (int)numEvent_bottom.Value;
+            int right = (int)numEvent_right.Value;
+            int top = (int)numEvent_top.Value;
+            int left = (int)numEvent_left.Value;
+            int width = right - left;
+            int height = bottom - top;
+
+            //safe check
+            if (width <= 0)
+                width = 0;
+            if (height <= 0)
+                height = 0;
+
+            //name here
+            tempEventRetangle.Name = textBoxEvent.Text;
+
+            //copy info to the rect
+            tempRectangle.Location = new Point(left, top);
+            tempRectangle.Width = width;
+            tempRectangle.Height = height;
+
+            //copy rect back
+            tempEventRetangle.Rect = tempRectangle;
+
+            //old one index
+            int tempIndex = listBoxEvent.SelectedIndex;
+
+            //insert a new one
+            listBoxEvent.Items.Insert(tempIndex, tempEventRetangle);
+            m_eventRect.Insert(tempIndex, tempEventRetangle);
+
+            //remove the old one
+            listBoxEvent.Items.RemoveAt(tempIndex + 1);
+            m_eventRect.RemoveAt(tempIndex + 1);
+
+            listBoxEvent.SelectedIndex = tempIndex;
+        }
+
+       
+      //event index change
+        private void listBoxEvent_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBoxEvent.SelectedIndex == -1)
+                return;
+
+            Event_Collision_Object_Rect r = (Event_Collision_Object_Rect)listBoxEvent.Items[listBoxEvent.SelectedIndex];
+            numEvent_top.Value = r.Rect.Top;
+            numEvent_left.Value = r.Rect.Left;
+            numEvent_right.Value = r.Rect.Right;
+            numEvent_bottom.Value = r.Rect.Bottom;
+            textBoxEvent.Text = r.Name;
+        }
+
+        //event delete
+        private void buttonEventDelete_Click(object sender, EventArgs e)
+        {
+            if (listBoxEvent.SelectedIndex == -1)
+                return;
+
+            int tempIndex = listBoxEvent.SelectedIndex;
+            listBoxEvent.Items.RemoveAt(tempIndex);
+            m_eventRect.RemoveAt(tempIndex);
+         
+        }
+
+        //object event//
+        //***************************************************************************************//
+        private void listBoxObject_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (listBoxObject.SelectedIndex == -1)
+                return;
+            
+            Event_Collision_Object_Rect r = (Event_Collision_Object_Rect)listBoxObject.Items[listBoxObject.SelectedIndex];
+            numObject_left.Value = r.Rect.Top;
+            numObject_top.Value = r.Rect.Left;
+            textBoxObject.Text = r.Name;
+        }
+
+        private void buttonObjectDelete_Click(object sender, EventArgs e)
+        {
+            if (listBoxObject.SelectedIndex == -1)
+                return;
+            
+            int tempIndex = listBoxObject.SelectedIndex;
+            listBoxObject.Items.RemoveAt(tempIndex);
+            m_objectPt.RemoveAt(tempIndex);
+
+        }
+
+        private void buttonObjectUpdate_Click(object sender, EventArgs e)
+        {
+            if (listBoxObject.SelectedIndex == -1)
+                return;
+        
+            Rectangle tempRectangle = new Rectangle();
+            Event_Collision_Object_Rect tempEventRetangle = new Event_Collision_Object_Rect();
+            //get the number info
+            int top = (int)numObject_top.Value;
+            int left = (int)numObject_left.Value;
+            int width =20;
+            int height = 20;
+
+            //safe check
+            if (width <= 0)
+                width = 0;
+            if (height <= 0)
+                height = 0;
+            
+            //name here
+            tempEventRetangle.Name = textBoxObject.Text;
+
+            //copy info to the rect
+            tempRectangle.Location = new Point(left, top);
+            tempRectangle.Width = width;
+            tempRectangle.Height = height;
+
+            //copy rect back
+            tempEventRetangle.Rect = tempRectangle;
+
+            //old one index
+            int tempIndex = listBoxObject.SelectedIndex;
+
+            //insert a new one
+            listBoxObject.Items.Insert(tempIndex, tempEventRetangle);
+            m_objectPt.Insert(tempIndex, tempEventRetangle);
+
+            //remove the old one
+            listBoxObject.Items.RemoveAt(tempIndex + 1);
+            m_objectPt.RemoveAt(tempIndex + 1);
+            
+            listBoxObject.SelectedIndex = tempIndex;
+        }
+
+        private void buttonOjectNext_Click(object sender, EventArgs e)
+        {
+            buttonNext();
+        }
+
+        private void buttonNext()
+        {
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            switch (m_mode)
+            {            
+                case paintMode.collision:
+                    tempListBox = listBoxCollision;
+                    tempCollection = m_collisionRect;
+                    break;
+                case paintMode.eventTrigger:
+                    tempListBox = listBoxEvent;
+                    tempCollection = m_eventRect;
+                    break;
+                case paintMode.Object:
+                    tempListBox = listBoxObject;
+                    tempCollection = m_objectPt;
+                    break;
+                default:
+                    break;
+            }
+
+            int tempIndex = tempListBox.SelectedIndex;
+
+            if (tempIndex == -1)
+                return;
+
+            tempIndex++;
+
+            if (tempIndex >= tempCollection.Count)
+                tempListBox.SelectedIndex = 0;
+            else
+                tempListBox.SelectedIndex = tempIndex;
+        }
+        //***************************************************************************************//
+
+        private void tabEditLayer_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (tabEditLayer.SelectedTab == tabPageEvent)
+                setMode(paintMode.eventTrigger);
+            else if (tabEditLayer.SelectedTab == tabPageCollision)
+                setMode(paintMode.collision);
+            else if (tabEditLayer.SelectedTab == tabPageObject)
+                setMode(paintMode.Object);
+        }
+
+       
+      
+      
+
+      
+
+       
+
         //////////////////////////////////////tool windows////////////////////////////////////
 
     }

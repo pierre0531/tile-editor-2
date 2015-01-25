@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
 
 namespace toolsTempalte
 {
     public struct BucketCollection
     {
-        List<Tile> m_listTile;
+     //   List<Tile> m_listTile;
         int mouseX;
 
         public int MouseX
@@ -30,6 +31,69 @@ namespace toolsTempalte
         {
             get { return showBluePath; }
             set { showBluePath = value; }
+        }
+    }
+    public struct Event_Collision_Object_Rect
+    {
+        Size size;
+
+        public Size Size
+        {
+            get { return m_Rect.Size; }
+            set { m_Rect.Size = value; }
+        }
+
+        Rectangle m_Rect;
+
+        public Rectangle Rect
+        {
+            get { return m_Rect; }
+            set { m_Rect = value; }
+        }
+        string name ;
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
+        public override string ToString()
+        {
+            return name + "{Top= " + m_Rect.Top + ", Left=" + m_Rect.Left + ", Right=" + m_Rect.Right   + ", Botton=" + m_Rect.Bottom +'}';
+        }
+    }
+
+    
+    public struct ObjectPt
+    {
+        Rectangle m_Rect;
+
+        public Rectangle Rect
+        {
+            get { return m_Rect; }
+            set { m_Rect = value; }
+        }
+
+        
+        Point m_Pt;
+
+        public Point Pt
+        {
+            get { return m_Rect.Location; }
+            set { m_Rect.Location = value; }
+        }
+        string name;
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
+        public override string ToString()
+        {
+            return  "{name= "+name + "X= " + Pt.X + ", Y=" + Pt.Y + '}';
         }
     }
     public struct Tile
