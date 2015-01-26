@@ -86,7 +86,6 @@
             this.numCollision_top = new System.Windows.Forms.NumericUpDown();
             this.buttonCollisionDelete = new System.Windows.Forms.Button();
             this.tabPageEvent = new System.Windows.Forms.TabPage();
-            this.button11 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.listBoxEvent = new System.Windows.Forms.ListBox();
             this.textBoxEvent = new System.Windows.Forms.TextBox();
@@ -170,26 +169,28 @@
             // newToolStripMenuItem
             // 
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(111, 24);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.newToolStripMenuItem.Text = "New";
-            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripButton_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(111, 24);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.saveToolStripMenuItem.Text = "Save";
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // laodToolStripMenuItem
             // 
             this.laodToolStripMenuItem.Name = "laodToolStripMenuItem";
-            this.laodToolStripMenuItem.Size = new System.Drawing.Size(111, 24);
+            this.laodToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.laodToolStripMenuItem.Text = "Laod";
+            this.laodToolStripMenuItem.Click += new System.EventHandler(this.laodToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(111, 24);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -229,21 +230,21 @@
             // addCollisionToolStripMenuItem
             // 
             this.addCollisionToolStripMenuItem.Name = "addCollisionToolStripMenuItem";
-            this.addCollisionToolStripMenuItem.Size = new System.Drawing.Size(167, 24);
+            this.addCollisionToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.addCollisionToolStripMenuItem.Text = "Add Collision";
             this.addCollisionToolStripMenuItem.Click += new System.EventHandler(this.collisionButton_Click);
             // 
             // addEventToolStripMenuItem
             // 
             this.addEventToolStripMenuItem.Name = "addEventToolStripMenuItem";
-            this.addEventToolStripMenuItem.Size = new System.Drawing.Size(167, 24);
+            this.addEventToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.addEventToolStripMenuItem.Text = "Add Event";
             this.addEventToolStripMenuItem.Click += new System.EventHandler(this.EventButton_Click);
             // 
             // addObjectToolStripMenuItem
             // 
             this.addObjectToolStripMenuItem.Name = "addObjectToolStripMenuItem";
-            this.addObjectToolStripMenuItem.Size = new System.Drawing.Size(167, 24);
+            this.addObjectToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.addObjectToolStripMenuItem.Text = "Add Object";
             this.addObjectToolStripMenuItem.Click += new System.EventHandler(this.ObjectButton_Click);
             // 
@@ -283,6 +284,7 @@
             this.newToolStripButton.Name = "newToolStripButton";
             this.newToolStripButton.Size = new System.Drawing.Size(36, 36);
             this.newToolStripButton.Text = "&New";
+            this.newToolStripButton.Click += new System.EventHandler(this.newToolStripButton_Click);
             // 
             // openToolStripButton
             // 
@@ -292,6 +294,7 @@
             this.openToolStripButton.Name = "openToolStripButton";
             this.openToolStripButton.Size = new System.Drawing.Size(36, 36);
             this.openToolStripButton.Text = "&Open";
+            this.openToolStripButton.Click += new System.EventHandler(this.laodToolStripMenuItem_Click);
             // 
             // saveToolStripButton
             // 
@@ -301,6 +304,7 @@
             this.saveToolStripButton.Name = "saveToolStripButton";
             this.saveToolStripButton.Size = new System.Drawing.Size(36, 36);
             this.saveToolStripButton.Text = "&Save";
+            this.saveToolStripButton.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -427,9 +431,7 @@
             this.tabAsset.SelectedIndex = 0;
             this.tabAsset.Size = new System.Drawing.Size(383, 270);
             this.tabAsset.TabIndex = 0;
-            this.tabAsset.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tabAsset_MouseClick);
             this.tabAsset.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
-            this.tabAsset.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tabAsset_MouseUp);
             // 
             // label4
             // 
@@ -708,7 +710,6 @@
             // 
             // tabPageEvent
             // 
-            this.tabPageEvent.Controls.Add(this.button11);
             this.tabPageEvent.Controls.Add(this.button2);
             this.tabPageEvent.Controls.Add(this.listBoxEvent);
             this.tabPageEvent.Controls.Add(this.textBoxEvent);
@@ -732,16 +733,6 @@
             this.tabPageEvent.TabIndex = 1;
             this.tabPageEvent.Text = "Event";
             this.tabPageEvent.UseVisualStyleBackColor = true;
-            // 
-            // button11
-            // 
-            this.button11.BackColor = System.Drawing.Color.Pink;
-            this.button11.Location = new System.Drawing.Point(36, 161);
-            this.button11.Name = "button11";
-            this.button11.Size = new System.Drawing.Size(70, 52);
-            this.button11.TabIndex = 62;
-            this.button11.Text = "Add";
-            this.button11.UseVisualStyleBackColor = false;
             // 
             // button2
             // 
@@ -864,7 +855,7 @@
             // buttonEventDelete
             // 
             this.buttonEventDelete.BackColor = System.Drawing.Color.Yellow;
-            this.buttonEventDelete.Location = new System.Drawing.Point(118, 161);
+            this.buttonEventDelete.Location = new System.Drawing.Point(73, 161);
             this.buttonEventDelete.Name = "buttonEventDelete";
             this.buttonEventDelete.Size = new System.Drawing.Size(70, 52);
             this.buttonEventDelete.TabIndex = 56;
@@ -885,7 +876,7 @@
             // buttonUpdateEvent
             // 
             this.buttonUpdateEvent.BackColor = System.Drawing.Color.Lime;
-            this.buttonUpdateEvent.Location = new System.Drawing.Point(201, 161);
+            this.buttonUpdateEvent.Location = new System.Drawing.Point(156, 161);
             this.buttonUpdateEvent.Name = "buttonUpdateEvent";
             this.buttonUpdateEvent.Size = new System.Drawing.Size(72, 52);
             this.buttonUpdateEvent.TabIndex = 55;
@@ -1181,7 +1172,6 @@
         private System.Windows.Forms.Button button10;
         private System.Windows.Forms.ListBox listBoxCollision;
         private System.Windows.Forms.ListBox listBoxObject;
-        private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.ListBox listBoxEvent;
         private System.Windows.Forms.TextBox textBoxEvent;

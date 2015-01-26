@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
+using System.Xml;
 
 namespace toolsTempalte
 {
@@ -32,7 +34,6 @@ namespace toolsTempalte
         SGP.CSGP_Direct3D D3D = SGP.CSGP_Direct3D.GetInstance();
         SGP.CSGP_TextureManager TM = SGP.CSGP_TextureManager.GetInstance();
 
-        int TextureID = -1;
         bool looping = true;
         public bool Looping
         {
@@ -53,6 +54,8 @@ namespace toolsTempalte
         int tileWidth;
         int tileHeigth;
 
+        int m_screenSizeW; 
+        int m_screenSizeH ;
         //set-up the initial 
         //The current selected tile
         Tile selectedTile;
@@ -90,36 +93,12 @@ namespace toolsTempalte
         public Form1()
         {
             InitializeComponent();
-            initializeNumber();
-            m_bucketColletion.MouseX = -1;
-            m_bucketColletion.MouseY = -1;
-
-            initMap(ref map, mapX, mapY);
-
-            initMap(ref mapFullTile, mapX, mapY);
-
             D3D.Initialize(panel1, true);
-        //    D3D.AddRenderTarget(panel2);
             D3D.AddRenderTarget(panel3);
             TM.Initialize(D3D.Device, D3D.Sprite);
 
-            m_mode = paintMode.stamp;
-            buttonFull.Checked = false;
-            ButtonStamp.Checked = true;
-            collisionButton.Checked = false;
-               
-            panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
-            
-          //  TextureID = TM.LoadTexture("testmap3.bmp");
-         
-            if (TextureID != -1)
-            {
-                //panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
-                //tileMap tempListMap = new tileMap();
-                //tempListMap.TextureID = TextureID;
-                //tempListMap.PathName = "testmap3.bmp";
-                //m_tileMap.Add(tempListMap);
-            }
+            initializeNumber();
+                        
         
         }
 
@@ -170,6 +149,18 @@ namespace toolsTempalte
              ObjectCheckBox.Checked = true;
              CollisionCheckBox.Checked = true;
              checkBoxGrid.Checked = true;
+
+             m_bucketColletion.MouseX = -1;
+             m_bucketColletion.MouseY = -1;
+
+             initMap(ref map, mapX, mapY);
+             initMap(ref mapFullTile, mapX, mapY);
+             setMode(paintMode.stamp);
+             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
+     
+             m_screenSizeW = 800;
+             m_screenSizeH = 600;
+
         }
         private void initMap(ref Tile[,] _map, int _mapX, int _mapY)
         {
@@ -182,6 +173,7 @@ namespace toolsTempalte
                     _map[x, y].Y = -1;
                     _map[x, y].CheckForBucket = false;
                     _map[x, y].PreviewOnMap = false;
+                    _map[x, y].TabIndex = -1;
                 }
             }
         }
@@ -238,7 +230,7 @@ namespace toolsTempalte
                     for (int y = 0; y < mapY; y++)
                     {
 
-                        if (map[x, y].X == -1 && map[x, y].Y == -1)
+                        if (map[x, y].TabIndex == -1)
                             continue;
 
                         src.X = map[x, y].X * tileWidth;
@@ -404,7 +396,7 @@ namespace toolsTempalte
                 for (int y = 0; y < mapY; y++)
                 {
 
-                    if (mapFullTile[x, y].X == -1 && mapFullTile[x, y].Y == -1)
+                    if (mapFullTile[x, y].TabIndex == -1)
                         continue;
 
                     //only show when this value is true
@@ -554,7 +546,7 @@ namespace toolsTempalte
                 for (int y = 0; y < mapY; y++)
                 {
 
-                    if (map[x, y].X == -1 && map[x, y].Y == -1)
+                    if (map[x, y].TabIndex == -1)
                         continue;
 
                     src.X = map[x, y].X * tileWidth;
@@ -766,6 +758,7 @@ namespace toolsTempalte
                     {
                         _target[x, y].X = _src[x, y].X;
                         _target[x, y].Y = _src[x, y].Y;
+                        _target[x, y].TabIndex = _src[x, y].TabIndex;
                     }
                         //not total copy for preview
                     else
@@ -774,6 +767,7 @@ namespace toolsTempalte
                         {
                             _target[x, y].X = _src[x, y].X;
                             _target[x, y].Y = _src[x, y].Y;
+                            _target[x, y].TabIndex = _src[x, y].TabIndex;
                         }
                     }
 
@@ -899,6 +893,7 @@ namespace toolsTempalte
                 mapFullTile[tempX, tempY].Y = selectedTile.Y;
                 mapFullTile[tempX, tempY].CheckForBucket = true;
                 mapFullTile[tempX, tempY].PreviewOnMap = true;
+                mapFullTile[tempX, tempY].TabIndex = tabAsset.SelectedIndex;
                 counter++;
                 //go to next cursive point
                 recursiveTile(tempX, tempY, _checkTileX, _checkTileY);
@@ -1059,6 +1054,13 @@ namespace toolsTempalte
 
         private void storageTile(int _x, int _y)
         {
+
+            //get tabIndex
+            int tempTabIndex = tabAsset.SelectedIndex;
+
+            if (tempTabIndex == -1)
+                return;
+
             //send the swap number back
             int startX = selectedTile.X;
             int startY = selectedTile.Y;
@@ -1069,11 +1071,9 @@ namespace toolsTempalte
             int relativeXLength = endX - startX;
             int relativeYLength = endY - startY;
 
-             //get tabIndex
-             int tempTabIndex = tabAsset.SelectedIndex;
 
               //using tabIndex to get which tab is selected
-              int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+            int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
           
             for (int startPtX = startX, relativeX = 0; startPtX <= endX; startPtX++, relativeX++)
             {
@@ -1225,6 +1225,7 @@ namespace toolsTempalte
                     {
                         tempTile[x, y].X = map[x, y].X;
                         tempTile[x, y].Y = map[x, y].Y;
+                        tempTile[x, y].TabIndex = map[x, y].TabIndex;
                     }
                 }
 
@@ -1237,6 +1238,7 @@ namespace toolsTempalte
                     //copy the temp to the map
                     map[x, y].X = tempTile[x, y].X;
                     map[x, y].Y = tempTile[x, y].Y;
+                    map[x, y].TabIndex = tempTile[x, y].TabIndex;
                 }
         }
 
@@ -1269,22 +1271,56 @@ namespace toolsTempalte
 
         }
 
+        private void importTileHelper(string open)
+        {
+            //Open a stream for reading
+            tileMap tempListMap = new tileMap();
+            tempListMap.TextureID = TM.LoadTexture(open);
+            tempListMap.PathName = open;
+
+            //new tab
+            TabPage tempTabPage = new TabPage();
+            tempTabPage.Parent = tabAsset;
+            tempTabPage.Text = m_tileMap.Count.ToString();
+            //new panel
+            Panel tempPanel = new Panel();
+            tempPanel.AutoScrollMinSize = new Size(TM.GetTextureWidth(tempListMap.TextureID), TM.GetTextureHeight(tempListMap.TextureID));
+            tempPanel.BorderStyle = BorderStyle.FixedSingle;
+            tempPanel.Dock = DockStyle.Fill;
+            tempPanel.BackColor = Color.Transparent;
+
+            //setting the new tab
+            tempPanel.Parent = tempTabPage;
+            //   tempPanel.Location = new Point(0, 0);
+            D3D.AddRenderTarget(tempPanel);
+
+            //add action to the panel
+            tempPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
+            tempPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseUp);
+            tempPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseDown);
+
+            //open a tile collection
+            tileCollection temptileCollection = new tileCollection();
+            temptileCollection.TileMap = tempListMap;
+            temptileCollection.Panel = tempPanel;
+            m_tileMap.Add(temptileCollection);        
+        }
         private void openFile()
         {  //Create an open file
             OpenFileDialog open = new OpenFileDialog();
 
             //set the filter
-            open.Filter = "Tile Files(*.bmp)|*.bmp|Tile Files(*.gif)|*.gif|Tile Files(*.png)|*.png|All Files(*.*)|*.*";
+            open.Filter = "All Files(*.*)|*.*|Tile Files(*.bmp)|*.bmp|Tile Files(*.gif)|*.gif|Tile Files(*.png)|*.png";
 
             if (DialogResult.OK == open.ShowDialog())
             {
                 //Open a stream for reading
                 tileMap tempListMap = new tileMap();
                 tempListMap.TextureID = TM.LoadTexture(open.FileName);
-                tempListMap.PathName = open.FileName;           
+                tempListMap.PathName = open.SafeFileName;           
            
                 //new tab
-                TabPage tempTabPage = new TabPage(open.FileName);
+                TabPage tempTabPage = new TabPage();
                 tempTabPage.Parent = tabAsset;
                 tempTabPage.Text = m_tileMap.Count.ToString();
                 //new panel
@@ -1308,11 +1344,7 @@ namespace toolsTempalte
                  tileCollection temptileCollection = new tileCollection();
                  temptileCollection.TileMap = tempListMap;
                  temptileCollection.Panel = tempPanel;
-                 m_tileMap.Add(temptileCollection);
-            
-               
-             
-              //  setTheScroll();
+                 m_tileMap.Add(temptileCollection);                        
             }
         }
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1345,8 +1377,6 @@ namespace toolsTempalte
                 storageCollisionRect(e.Location.X, e.Location.Y);
             else if (m_mode == paintMode.eventTrigger)
                 storageCollisionRect(e.Location.X, e.Location.Y);
-          
-            else { }
         }
 
        
@@ -1416,7 +1446,7 @@ namespace toolsTempalte
 
            Event_Collision_Object_Rect tempEventRect = new Event_Collision_Object_Rect();
            tempEventRect.Rect = tempRect;
-
+           tempEventRect.Name = "default";
           
            switch (m_mode)
            {         
@@ -1768,22 +1798,319 @@ namespace toolsTempalte
                 setMode(paintMode.Object);
         }
 
-        private void tabAsset_MouseClick(object sender, MouseEventArgs e)
+
+        private void newToolStripButton_Click(object sender, EventArgs e)
         {
-            int tabIndex = tabAsset.SelectedIndex;
-           // tabAsset.TabPages[tabIndex];
-           
-           // if(tabAsset.SelectedIndex)
+            initializeNumber();
+            makeNewFile();
         }
 
-        private void tabPage2_Click(object sender, EventArgs e)
+        private void makeNewFile()
         {
-            int x = 1;
+            m_bucketColletion.MouseX = -1;
+            m_bucketColletion.MouseY = -1;
+
+            initMap(ref map, mapX, mapY);
+            initMap(ref mapFullTile, mapX, mapY);
+
+            setMode(paintMode.stamp);
+            panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
+            m_collisionRect.Clear();
+            m_eventRect.Clear();
+            m_objectPt.Clear();
+
+            listBoxCollision.Items.Clear();
+            listBoxEvent.Items.Clear();
+            listBoxObject.Items.Clear();
+        }
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.Filter = "All Files (*.*)|*.*|XML(*.xml)|*.xml";
+            dlg.FilterIndex = 2;
+            dlg.DefaultExt = "xml";
+          //  XmlWriter writer = XmlWriter.Create("employees.xml");
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                XElement xRoot = new XElement("TileSystem");
+
+
+                XAttribute m_worldSizeW = new XAttribute("m_worldSizeW", mapX * tileWidth);
+                xRoot.Add(m_worldSizeW);
+
+                XAttribute m_worldSizeH = new XAttribute("m_worldSizeH", mapY * tileHeigth);
+                xRoot.Add(m_worldSizeH);
+
+                XAttribute screenSizeW = new XAttribute("m_screenSizeW", m_screenSizeW);
+                xRoot.Add(screenSizeW);
+
+                XAttribute screenSizeH = new XAttribute("m_screenSizeH", m_screenSizeH);
+                xRoot.Add(screenSizeH);
+
+                XAttribute m_tileSizeW = new XAttribute("m_tileSizeW", tileWidth);
+                xRoot.Add(m_tileSizeW);
+
+                XAttribute m_tileSizeH = new XAttribute("m_tileSizeH", tileHeigth);
+                xRoot.Add(m_tileSizeH);
+
+                XAttribute m_tileSetX = new XAttribute("m_tileSetX", tileSetX);
+                xRoot.Add(m_tileSetX);
+
+                XAttribute m_tileSetY = new XAttribute("m_tileSetY", tileSetY);
+                xRoot.Add(m_tileSetY);
+
+                XAttribute mapXgrid = new XAttribute("mapX", mapX);
+                xRoot.Add(mapXgrid);
+
+                XAttribute mapYgrid = new XAttribute("mapY", mapY);
+                xRoot.Add(mapYgrid);
+
+                //tile map path
+                for (int i = 0; i < m_tileMap.Count; i++)
+                {
+                    XElement path = new XElement("Path");
+                    xRoot.Add(path);
+
+                    XAttribute pathName = new XAttribute("name", m_tileMap[i].TileMap.PathName);
+                    path.Add(pathName);
+                }       
+
+                //collision left,top,size
+                for (int i = 0; i < m_collisionRect.Count; i++)
+                {
+                    XElement collision = new XElement("collision");
+                    xRoot.Add(collision);
+
+                    XAttribute collision_left = new XAttribute("collision_left", m_collisionRect[i].Rect.Left);
+                    collision.Add(collision_left);
+
+                    XAttribute collision_top = new XAttribute("collision_top", m_collisionRect[i].Rect.Top);
+                    collision.Add(collision_top);
+
+                    XAttribute collision_size_w = new XAttribute("collision_size_w", m_collisionRect[i].Rect.Size.Width);
+                    collision.Add(collision_size_w);
+
+                    XAttribute collision_size_h = new XAttribute("collision_size_h", m_collisionRect[i].Rect.Size.Height);
+                    collision.Add(collision_size_h);
+                }
+                
+                //event name,left,top,size
+                for (int i = 0; i < m_eventRect.Count; i++)
+                {
+                    XElement eventRect = new XElement("event");
+                    xRoot.Add(eventRect);
+
+                    XAttribute event_name = new XAttribute("event_name", m_eventRect[i].Name);
+                    eventRect.Add(event_name);
+
+                    XAttribute event_left = new XAttribute("event_left", m_eventRect[i].Rect.Left);
+                    eventRect.Add(event_left);
+
+                    XAttribute event_top = new XAttribute("event_top", m_eventRect[i].Rect.Top);
+                    eventRect.Add(event_top);
+
+                    XAttribute event_size_w = new XAttribute("event_size_w", m_eventRect[i].Rect.Size.Width);
+                    eventRect.Add(event_size_w);
+
+                    XAttribute event_size_h = new XAttribute("event_size_h", m_eventRect[i].Rect.Size.Height);
+                    eventRect.Add(event_size_h);
+                }
+                
+                //object left,top,name
+                for (int i = 0; i < m_objectPt.Count; i++)
+                {
+                    XElement objectRect = new XElement("object");
+                    xRoot.Add(objectRect);
+
+                    XAttribute object_name = new XAttribute("object_name", m_objectPt[i].Name);
+                    objectRect.Add(object_name);
+
+                    XAttribute object_left = new XAttribute("object_left", m_objectPt[i].Rect.Left);
+                    objectRect.Add(object_left);
+
+                    XAttribute object_top = new XAttribute("object_top", m_objectPt[i].Rect.Top);
+                    objectRect.Add(object_top);
+                 
+                }
+               
+                //tile map
+                //object left,top,name
+                 for (int x = 0; x < mapX; x++)
+                  {
+                    for (int y = 0; y < mapY; y++)
+                        {
+                        int indexX = map[x, y].X;
+                        int indexY = map[x, y].Y;
+                        int layerIndex = map[x, y].TabIndex;
+                        XElement tileMap = new XElement("tile");
+                        xRoot.Add(tileMap);
+                                
+                        //calculate total grid
+                        int gridTotal = indexX+indexY*tileSetY+tileSetX*tileSetY*layerIndex;
+
+                            XAttribute tileMap_index = new XAttribute("grid", gridTotal);
+                            tileMap.Add(tileMap_index);
+                        }
+                     }              
+            
+                xRoot.Save(dlg.FileName);
+            }
         }
 
-        private void tabAsset_MouseUp(object sender, MouseEventArgs e)
+        private void laodToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            int x = 1;
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.Filter = "All Files|*.*|XML Files|*.xml";
+            dlg.FilterIndex = 2;
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                XElement xRoot = XElement.Load(dlg.FileName);
+
+                //mapX ,mapY, tileSetX,tileSetY,tileSizeW,tileSizwH
+                XAttribute xmapX = xRoot.Attribute("mapX");
+                mapX = Convert.ToInt32(xmapX.Value);
+
+                XAttribute xmapY = xRoot.Attribute("mapY");
+                mapY = Convert.ToInt32(xmapY.Value);
+
+                XAttribute m_tileSizeW = xRoot.Attribute("m_tileSizeW");
+                tileWidth = Convert.ToInt32(m_tileSizeW.Value);
+
+                XAttribute m_tileSizeH = xRoot.Attribute("m_tileSizeH");
+                tileHeigth = Convert.ToInt32(m_tileSizeH.Value);
+
+                XAttribute m_tileSetX = xRoot.Attribute("m_tileSetX");
+                tileSetX = Convert.ToInt32(m_tileSetX.Value);
+
+                XAttribute m_tileSetY = xRoot.Attribute("m_tileSetY");
+                tileSetY = Convert.ToInt32(m_tileSetY.Value);
+
+                makeNewFile();
+
+                //clear all tab first
+                tabAsset.TabPages.Clear();
+                m_tileMap.Clear();
+
+                IEnumerable<XElement> xPaths = xRoot.Elements();
+
+                foreach (XElement xPath in xPaths)
+                {
+                    if (xPath.Name.ToString() == "Path" )
+                    {
+
+                        XAttribute xPathName = xPath.Attribute("name");
+                        string path = xPathName.Value;
+                        importTileHelper(path);
+                    }
+
+                    //collision
+                    if (xPath.Name.ToString() == "collision")
+                    {
+                      
+                        XAttribute xCollisioin = xPath.Attribute("collision_left");
+                        //left
+                        int collision_left = Convert.ToInt32(xCollisioin.Value);
+                        //top
+                        xCollisioin = xPath.Attribute("collision_top");
+                        int collision_top = Convert.ToInt32(xCollisioin.Value);
+
+                        xCollisioin = xPath.Attribute("collision_size_w");
+                        int collision_size_w = Convert.ToInt32(xCollisioin.Value);
+
+                        xCollisioin = xPath.Attribute("collision_size_h");
+                        int collision_size_h = Convert.ToInt32(xCollisioin.Value);
+
+                        Size tempSize = new Size(collision_size_w, collision_size_h);
+                        Event_Collision_Object_Rect tempCollision =
+                            new Event_Collision_Object_Rect(collision_left, collision_top, tempSize, "default");
+
+                        m_collisionRect.Add(tempCollision);
+                        listBoxCollision.Items.Add(tempCollision);
+                    }
+
+                    //event
+                    if (xPath.Name.ToString() == "event")
+                    {
+                      
+                        XAttribute xEvent = xPath.Attribute("event_left");
+                        //left
+                        int event_left = Convert.ToInt32(xEvent.Value);
+                        //top
+                        xEvent = xPath.Attribute("event_top");
+                        int event_top = Convert.ToInt32(xEvent.Value);
+
+                        xEvent = xPath.Attribute("event_size_w");
+                        int event_size_w = Convert.ToInt32(xEvent.Value);
+
+                        xEvent = xPath.Attribute("event_size_h");
+                        int event_size_h = Convert.ToInt32(xEvent.Value);
+
+                        xEvent = xPath.Attribute("event_name");
+                        string event_name = xEvent.Value;
+                   
+                        Size tempSize = new Size(event_size_w, event_size_h);
+                        Event_Collision_Object_Rect tempEvent =
+                            new Event_Collision_Object_Rect(event_left, event_top, tempSize, event_name);
+
+                        m_eventRect.Add(tempEvent);
+                        listBoxEvent.Items.Add(tempEvent);
+                    }
+
+                    //object
+                    if (xPath.Name.ToString() == "object")
+                    {
+
+                        XAttribute xEvent = xPath.Attribute("object_left");
+                        
+                        //left
+                        int object_left = Convert.ToInt32(xEvent.Value);
+                        //top
+                        xEvent = xPath.Attribute("object_top");
+                        int object_top = Convert.ToInt32(xEvent.Value);
+
+                        //object name
+                        xEvent = xPath.Attribute("object_name");
+                        string object_name = xEvent.Value;
+
+                        Size tempSize = new Size(1, 1);
+                        Event_Collision_Object_Rect tempObject =
+                            new Event_Collision_Object_Rect(object_left, object_top, tempSize, object_name);
+
+                        m_objectPt.Add(tempObject);
+                        listBoxObject.Items.Add(tempObject);
+                    }
+                             
+                    //tile
+                    if (xPath.Name.ToString() == "tile")
+                    {
+                        XAttribute xEvent = xPath.Attribute("grid");
+
+                        //index
+                        int index = Convert.ToInt32(xEvent.Value);
+
+                        if (index <= -1)
+                            continue;
+
+                        //another layer
+                        int layer = index / (tileSetX * tileSetY);
+                        
+                        //index adjust
+                        index -= layer * (tileSetX * tileSetY);
+
+                        int indexX = index % tileSetX;
+                        int indexY = index / tileSetX;
+
+                        map[indexX, indexY].TabIndex = layer;
+                        map[indexX, indexY].X = indexX;
+                        map[indexX, indexY].Y = indexY;
+
+                    }
+
+                }
+              
+            }
         }
 
 

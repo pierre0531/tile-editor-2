@@ -55,7 +55,15 @@ namespace toolsTempalte
     }
     public struct Event_Collision_Object_Rect
     {
-        Size size;
+        public Event_Collision_Object_Rect(int _left, int _top, Size _size, string _name)
+        {
+            m_Rect = new Rectangle(_left, _top, _size.Width, _size.Height);
+            name = _name;
+            size = _size;
+        }
+       
+
+        Size size;  
 
         public Size Size
         {
@@ -85,37 +93,7 @@ namespace toolsTempalte
     }
 
     
-    public struct ObjectPt
-    {
-        Rectangle m_Rect;
-
-        public Rectangle Rect
-        {
-            get { return m_Rect; }
-            set { m_Rect = value; }
-        }
-
-        
-        Point m_Pt;
-
-        public Point Pt
-        {
-            get { return m_Rect.Location; }
-            set { m_Rect.Location = value; }
-        }
-        string name;
-
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
-        }
-
-        public override string ToString()
-        {
-            return  "{name= "+name + "X= " + Pt.X + ", Y=" + Pt.Y + '}';
-        }
-    }
+ 
     public struct Tile
     {
         int tabIndex;
