@@ -10,6 +10,23 @@ using System.Windows.Forms;
 
 namespace toolsTempalte
 {
+    struct tileCollection
+    {
+        tileMap m_tileMap;
+
+        public tileMap TileMap
+        {
+            get { return m_tileMap; }
+            set { m_tileMap = value; }
+        }
+        Panel m_panel;
+
+        public Panel Panel
+        {
+            get { return m_panel; }
+            set { m_panel = value; }
+        }
+    }
     public partial class Form1 : Form
     {
         SGP.CSGP_Direct3D D3D = SGP.CSGP_Direct3D.GetInstance();
@@ -67,6 +84,9 @@ namespace toolsTempalte
         List<Event_Collision_Object_Rect> m_objectPt = new List<Event_Collision_Object_Rect>();
 
         bool[] m_showLayer = new bool[4];
+
+        //for multi-layer
+        List<tileCollection> m_tileMap = new List<tileCollection>();
         public Form1()
         {
             InitializeComponent();
@@ -79,7 +99,7 @@ namespace toolsTempalte
             initMap(ref mapFullTile, mapX, mapY);
 
             D3D.Initialize(panel1, true);
-            D3D.AddRenderTarget(panel2);
+        //    D3D.AddRenderTarget(panel2);
             D3D.AddRenderTarget(panel3);
             TM.Initialize(D3D.Device, D3D.Sprite);
 
@@ -89,11 +109,17 @@ namespace toolsTempalte
             collisionButton.Checked = false;
                
             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
-
-            TextureID = TM.LoadTexture("testmap3.bmp");
-            if(TextureID != -1)
-                panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
-
+            
+          //  TextureID = TM.LoadTexture("testmap3.bmp");
+         
+            if (TextureID != -1)
+            {
+                //panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
+                //tileMap tempListMap = new tileMap();
+                //tempListMap.TextureID = TextureID;
+                //tempListMap.PathName = "testmap3.bmp";
+                //m_tileMap.Add(tempListMap);
+            }
         
         }
 
@@ -167,8 +193,10 @@ namespace toolsTempalte
 
             Render1();
 
+            int TextureCount = m_tileMap.Count;
             //no tile map, so dont need to render 2 and render3
-            if (TextureID != -1)
+            if (TextureCount>0)
+       //     if (TextureID != -1)
             {
                 Render2();
                 Render3(); 
@@ -181,7 +209,11 @@ namespace toolsTempalte
             D3D.DeviceBegin();
             D3D.SpriteBegin();
 
-         
+            //get tabIndex
+            int tempTabIndex = tabAsset.SelectedIndex;
+
+            //using tabIndex to get which tab is selected
+            //int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
 
             //Draw the hollow Rect 
             Point offset = panel1.AutoScrollPosition;
@@ -197,7 +229,7 @@ namespace toolsTempalte
 
             //safe check
             if(MapCheckBox.Checked == true)
-            if (TextureID != -1)
+                if (tempTabIndex != -1)
             {
                 //for render the map section
                 Rectangle src = new Rectangle();
@@ -214,7 +246,8 @@ namespace toolsTempalte
                         src.Size = new Size(tileWidth, tileHeigth);
                         int locationX = x * tileWidth + offset.X;
                         int locationY = y * tileWidth + offset.Y;
-                        TM.Draw(TextureID, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
+                        TM.Draw(map[x, y].TabIndex, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
+                      //  TM.Draw(TextureID, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
 
                     }
                 }
@@ -224,7 +257,7 @@ namespace toolsTempalte
             
 
             //render the preview and mouse
-            if (TextureID != -1)
+            if (tempTabIndex != -1)
             {
                 switch (m_mode)
                 {
@@ -387,7 +420,7 @@ namespace toolsTempalte
                     int locationY = y * tileWidth + offset.Y;
 
 
-                    TM.Draw(TextureID, locationX, locationY, 1, 1, src);
+                    TM.Draw( mapFullTile[x, y].TabIndex, locationX, locationY, 1, 1, src);
 
                     if(  m_bucketColletion.ShowBluePath == true)
                     D3D.DrawRect(new Rectangle(locationX, locationY,
@@ -400,7 +433,11 @@ namespace toolsTempalte
         private void renderPreviewStamp()
         {
             Point offset = panel1.AutoScrollPosition;
-            Rectangle src = new Rectangle();        
+            Rectangle src = new Rectangle();
+
+            int tempTabIndex = tabAsset.SelectedIndex;
+            int temptextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+
             //render the mouse location
             for (int tempX = 0; tempX <= stampSelectedTile.X - selectedTile.X; tempX++)
             {
@@ -411,22 +448,47 @@ namespace toolsTempalte
                     src.Size = new Size(tileWidth, tileHeigth);
                     int locationX = hoverTile.X * tileWidth + tempX * tileWidth+ offset.X;
                     int locationY = hoverTile.Y * tileHeigth + tempY * tileHeigth+ offset.Y;
-                    TM.Draw(TextureID, locationX, locationY, 1, 1, src);
+                    TM.Draw(temptextureID, locationX, locationY, 1, 1, src);
                 }
             }
         }
+         
+
         public void Render2()
         {
-            D3D.Clear(panel2, Color.WhiteSmoke);
+            //get tabIndex
+            int tempTabIndex = tabAsset.SelectedIndex;
+
+            //using tabIndex to get which tab is selected
+            int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+
+            Panel panelTile = m_tileMap[tempTabIndex].Panel;
+         //   panelTile = panel2;
+         
+
+            //
+          
+         
+           // panelTile.Parent = tabAsset.TabPages[tempTabIndex];
+            //panelTile.Dock = DockStyle.Fill;
+         //   panelTile.Location = new Point(panelTile.Parent.Left, panelTile.Parent.Top);
+            //panelTile.AutoScrollMinSize = new Size(TM.GetTextureWidth(tempTextureID), TM.GetTextureHeight(tempTextureID));
+       //
+
+
+        
+           // D3D.Clear(panel2, Color.WhiteSmoke);
+            D3D.Clear(panelTile, Color.WhiteSmoke);
 
             D3D.DeviceBegin();
             D3D.SpriteBegin();
-
-
-            TM.Draw(TextureID, panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
+       //     panel2 = panelTile;
+            TM.Draw(tempTextureID, panelTile.AutoScrollPosition.X, panelTile.AutoScrollPosition.Y);
+           // TM.Draw(tempTextureID, panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
+  
 
             //draw grid
-            Point offset = panel2.AutoScrollPosition;
+            Point offset = panelTile.AutoScrollPosition;
             for (int x = 0; x < tileSetX; x++)
             {
                 for (int y = 0; y < tileSetY; y++)
@@ -499,8 +561,10 @@ namespace toolsTempalte
                     src.Y = map[x, y].Y * tileHeigth;
                     src.Size = new Size(tileWidth, tileHeigth);
 
-                    TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY,
+                    TM.Draw(map[x, y].TabIndex, x * tileWidth / scaleX, y * tileHeigth / scaleY,
                         1 / (float)scaleX, 1 / (float)scaleY, src);
+                    //TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY,
+                    //    1 / (float)scaleX, 1 / (float)scaleY, src);
                 }
             } 
         }
@@ -944,6 +1008,14 @@ namespace toolsTempalte
             //if mouse click and move, need to do something here
             if (mouseAtTileSet == true)
             {
+                //get tabIndex
+                int tempTabIndex = tabAsset.SelectedIndex;
+
+                //using tabIndex to get which tab is selected
+                int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+
+                Panel panel2 = m_tileMap[tempTabIndex].Panel;
+ 
 
                 //get the mouse tile location
                 int x = (e.Location.X - panel2.AutoScrollPosition.X) / tileWidth;//0~5
@@ -997,6 +1069,11 @@ namespace toolsTempalte
             int relativeXLength = endX - startX;
             int relativeYLength = endY - startY;
 
+             //get tabIndex
+             int tempTabIndex = tabAsset.SelectedIndex;
+
+              //using tabIndex to get which tab is selected
+              int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
           
             for (int startPtX = startX, relativeX = 0; startPtX <= endX; startPtX++, relativeX++)
             {
@@ -1012,6 +1089,7 @@ namespace toolsTempalte
                     //store the relative tile to the map
                     map[mapLocationX, mapLocationY].X = selectedTile.X + relativeX;
                     map[mapLocationX, mapLocationY].Y = selectedTile.Y + relativeY;
+                    map[mapLocationX, mapLocationY].TabIndex = tempTextureID;
                 }
             }
         }
@@ -1057,9 +1135,17 @@ namespace toolsTempalte
             if (outOfRangeTile(e))
                 return;
 
+            //get tabIndex
+            int tempTabIndex = tabAsset.SelectedIndex;
+
+            //using tabIndex to get which tab is selected
+            int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+
+            Panel panelTile = m_tileMap[tempTabIndex].Panel;
+
             //get the mouse location at selectedTile
-            selectedTile.X = (e.Location.X - panel2.AutoScrollPosition.X) / tileWidth;//0~5
-            selectedTile.Y = (e.Location.Y - panel2.AutoScrollPosition.Y) / tileHeigth;//0~1
+            selectedTile.X = (e.Location.X - panelTile.AutoScrollPosition.X) / tileWidth;//0~5
+            selectedTile.Y = (e.Location.Y - panelTile.AutoScrollPosition.Y) / tileHeigth;//0~1
 
             //send the mouse info to stampSelectedTile
             stampSelectedTile.X = selectedTile.X;
@@ -1176,8 +1262,10 @@ namespace toolsTempalte
         private void ImportAsset_Click(object sender, EventArgs e)
         {
             openFile();
-
-            panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
+           // int tempTabIndex = tabAsset.SelectedIndex;
+          //  int temptextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+         //   panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(temptextureID), TM.GetTextureHeight(temptextureID));
+            //panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
 
         }
 
@@ -1191,11 +1279,40 @@ namespace toolsTempalte
             if (DialogResult.OK == open.ShowDialog())
             {
                 //Open a stream for reading
+                tileMap tempListMap = new tileMap();
+                tempListMap.TextureID = TM.LoadTexture(open.FileName);
+                tempListMap.PathName = open.FileName;           
+           
+                //new tab
+                TabPage tempTabPage = new TabPage(open.FileName);
+                tempTabPage.Parent = tabAsset;
+                tempTabPage.Text = m_tileMap.Count.ToString();
+                //new panel
+                 Panel tempPanel = new Panel();
+                 tempPanel.AutoScrollMinSize = new Size(TM.GetTextureWidth(tempListMap.TextureID), TM.GetTextureHeight(tempListMap.TextureID));
+                 tempPanel.BorderStyle = BorderStyle.FixedSingle;
+                 tempPanel.Dock = DockStyle.Fill;
+                 tempPanel.BackColor = Color.Transparent;
 
-                //  tilePic = new Bitmap(open.FileName);
-                TextureID = TM.LoadTexture(open.FileName);
+                 //setting the new tab
+                 tempPanel.Parent = tempTabPage;
+                 //   tempPanel.Location = new Point(0, 0);
+                 D3D.AddRenderTarget(tempPanel);
 
-                setTheScroll();
+                //add action to the panel
+                 tempPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
+                 tempPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseUp);
+                 tempPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseDown);
+
+                 //open a tile collection
+                 tileCollection temptileCollection = new tileCollection();
+                 temptileCollection.TileMap = tempListMap;
+                 temptileCollection.Panel = tempPanel;
+                 m_tileMap.Add(temptileCollection);
+            
+               
+             
+              //  setTheScroll();
             }
         }
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1586,12 +1703,56 @@ namespace toolsTempalte
             int tempIndex = tempListBox.SelectedIndex;
 
             if (tempIndex == -1)
+            {
+                tempListBox.SelectedIndex = 0;
                 return;
+            }
 
             tempIndex++;
 
             if (tempIndex >= tempCollection.Count)
                 tempListBox.SelectedIndex = 0;
+            else
+                tempListBox.SelectedIndex = tempIndex;
+        }
+        private void buttonPre_Click(object sender, EventArgs e)
+        {
+            buttonPre();
+        }
+        private void buttonPre()
+        {
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            switch (m_mode)
+            {
+                case paintMode.collision:
+                    tempListBox = listBoxCollision;
+                    tempCollection = m_collisionRect;
+                    break;
+                case paintMode.eventTrigger:
+                    tempListBox = listBoxEvent;
+                    tempCollection = m_eventRect;
+                    break;
+                case paintMode.Object:
+                    tempListBox = listBoxObject;
+                    tempCollection = m_objectPt;
+                    break;
+                default:
+                    break;
+            }
+
+            int tempIndex = tempListBox.SelectedIndex;
+
+            if (tempIndex == -1)
+            {
+                tempListBox.SelectedIndex = 0;
+                return; 
+            }
+
+            tempIndex--;
+
+            if (tempIndex < 0)
+                tempListBox.SelectedIndex = tempCollection.Count - 1;
             else
                 tempListBox.SelectedIndex = tempIndex;
         }
@@ -1606,6 +1767,28 @@ namespace toolsTempalte
             else if (tabEditLayer.SelectedTab == tabPageObject)
                 setMode(paintMode.Object);
         }
+
+        private void tabAsset_MouseClick(object sender, MouseEventArgs e)
+        {
+            int tabIndex = tabAsset.SelectedIndex;
+           // tabAsset.TabPages[tabIndex];
+           
+           // if(tabAsset.SelectedIndex)
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+            int x = 1;
+        }
+
+        private void tabAsset_MouseUp(object sender, MouseEventArgs e)
+        {
+            int x = 1;
+        }
+
+
+       
+     
 
        
       

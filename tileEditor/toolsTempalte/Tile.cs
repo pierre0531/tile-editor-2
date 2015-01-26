@@ -7,6 +7,26 @@ using System.Drawing;
 
 namespace toolsTempalte
 {
+    public struct tileMap
+    {
+        string pathName;
+
+        public string PathName
+        {
+            get { return pathName; }
+            set { pathName = value; }
+        }
+        int textureID;
+
+        public int TextureID
+        {
+            get { return textureID; }
+            set { textureID = value; }
+        }
+
+    
+        
+    }
     public struct BucketCollection
     {
      //   List<Tile> m_listTile;
@@ -98,6 +118,14 @@ namespace toolsTempalte
     }
     public struct Tile
     {
+        int tabIndex;
+
+        public int TabIndex
+        {
+            get { return tabIndex; }
+            set { tabIndex = value; }
+        }
+
         bool previewOnMap;
 
         public bool PreviewOnMap
@@ -132,13 +160,13 @@ namespace toolsTempalte
         }
 
         //power ctor
-        public Tile(int _x, int _y)
-        {
-            this.x = _x;
-            this.y = _y;
-            checkForBucket = false;
-            previewOnMap = false;
-        }
+        //public Tile(int _x, int _y)
+        //{
+        //    this.x = _x;
+        //    this.y = _y;
+        //    checkForBucket = false;
+        //    previewOnMap = false;
+        //}
        
     }
 }

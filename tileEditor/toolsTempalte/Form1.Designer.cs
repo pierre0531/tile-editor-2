@@ -1,5 +1,6 @@
 ﻿namespace toolsTempalte
 {
+  
     partial class Form1
     {
         /// <summary>
@@ -29,7 +30,6 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.panel2 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,9 +61,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.tabAsset = new System.Windows.Forms.TabControl();
             this.label4 = new System.Windows.Forms.Label();
             this.MapCheckBox = new System.Windows.Forms.CheckBox();
             this.CollisionCheckBox = new System.Windows.Forms.CheckBox();
@@ -120,8 +118,6 @@
             this.button10 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
-            this.tabControl1.SuspendLayout();
-            this.tabPage1.SuspendLayout();
             this.showLayerGroupBox.SuspendLayout();
             this.tabEditLayer.SuspendLayout();
             this.tabPageCollision.SuspendLayout();
@@ -139,26 +135,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.numObject_left)).BeginInit();
             this.SuspendLayout();
             // 
-            // panel2
-            // 
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(3, 3);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(378, 133);
-            this.panel2.TabIndex = 1;
-            this.panel2.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel2_Scroll);
-            this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
-            this.panel2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseDown);
-            this.panel2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
-            this.panel2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseUp);
-            // 
             // panel3
             // 
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel3.Location = new System.Drawing.Point(666, 81);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(392, 340);
+            this.panel3.Size = new System.Drawing.Size(383, 282);
             this.panel3.TabIndex = 2;
             // 
             // menuStrip1
@@ -432,42 +414,22 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(676, 441);
+            this.label3.Location = new System.Drawing.Point(663, 378);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(79, 16);
             this.label3.TabIndex = 8;
             this.label3.Text = "Tile Asset";
             // 
-            // tabControl1
+            // tabAsset
             // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Location = new System.Drawing.Point(679, 469);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(392, 168);
-            this.tabControl1.TabIndex = 0;
-            // 
-            // tabPage1
-            // 
-            this.tabPage1.Controls.Add(this.panel2);
-            this.tabPage1.Location = new System.Drawing.Point(4, 25);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(384, 139);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "tabPage1";
-            this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // tabPage2
-            // 
-            this.tabPage2.Location = new System.Drawing.Point(4, 25);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(384, 139);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "tabPage2";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            this.tabAsset.Location = new System.Drawing.Point(666, 405);
+            this.tabAsset.Name = "tabAsset";
+            this.tabAsset.SelectedIndex = 0;
+            this.tabAsset.Size = new System.Drawing.Size(383, 270);
+            this.tabAsset.TabIndex = 0;
+            this.tabAsset.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tabAsset_MouseClick);
+            this.tabAsset.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
+            this.tabAsset.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tabAsset_MouseUp);
             // 
             // label4
             // 
@@ -648,6 +610,7 @@
             this.button6.TabIndex = 35;
             this.button6.Text = "Prev";
             this.button6.UseVisualStyleBackColor = false;
+            this.button6.Click += new System.EventHandler(this.buttonPre_Click);
             // 
             // label15
             // 
@@ -949,6 +912,7 @@
             this.button1.TabIndex = 53;
             this.button1.Text = "Prev";
             this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.buttonPre_Click);
             // 
             // tabPageObject
             // 
@@ -1097,6 +1061,7 @@
             this.button10.TabIndex = 35;
             this.button10.Text = "Prev";
             this.button10.UseVisualStyleBackColor = false;
+            this.button10.Click += new System.EventHandler(this.buttonPre_Click);
             // 
             // Form1
             // 
@@ -1106,7 +1071,7 @@
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.tabEditLayer);
             this.Controls.Add(this.showLayerGroupBox);
-            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.tabAsset);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -1122,8 +1087,6 @@
             this.menuStrip1.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
-            this.tabControl1.ResumeLayout(false);
-            this.tabPage1.ResumeLayout(false);
             this.showLayerGroupBox.ResumeLayout(false);
             this.showLayerGroupBox.PerformLayout();
             this.tabEditLayer.ResumeLayout(false);
@@ -1150,7 +1113,6 @@
 
         #endregion
 
-        private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
@@ -1179,9 +1141,7 @@
         private System.Windows.Forms.ToolStripButton buttonFull;
         private System.Windows.Forms.ToolStripButton ButtonStamp;
         private System.Windows.Forms.ToolStripButton collisionButton;
-        private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TabControl tabAsset;
         private System.Windows.Forms.ToolStripButton EventButton;
         private System.Windows.Forms.ToolStripButton ObjectButton;
         private System.Windows.Forms.Label label4;

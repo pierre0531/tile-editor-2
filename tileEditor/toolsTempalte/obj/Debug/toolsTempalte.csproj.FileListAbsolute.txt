@@ -34,3 +34,13 @@ C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\bin\D
 C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.pdb
 C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.resizeOptionsWindows.resources
 C:\Users\pierre531\Documents\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.csprojResolveAssemblyReference.cache
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\bin\Debug\toolsTempalte.exe
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\bin\Debug\toolsTempalte.exe.config
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.exe
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.pdb
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\bin\Debug\toolsTempalte.pdb
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.csprojResolveAssemblyReference.cache
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.Form1.resources
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.resizeOptionsWindows.resources
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.Properties.Resources.resources
+F:\GitHub\tile-editor-2\tileEditor\toolsTempalte\obj\Debug\toolsTempalte.csproj.GenerateResource.Cache
