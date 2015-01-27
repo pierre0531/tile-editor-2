@@ -1729,6 +1729,10 @@ namespace toolsTempalte
                 default:
                     break;
             }
+            
+            //safe check
+            if (tempCollection.Count <= 0)
+                return;
 
             int tempIndex = tempListBox.SelectedIndex;
 
@@ -1770,6 +1774,10 @@ namespace toolsTempalte
                 default:
                     break;
             }
+
+            //safe check
+            if (tempCollection.Count <= 0)
+                return;
 
             int tempIndex = tempListBox.SelectedIndex;
 
@@ -1995,6 +2003,9 @@ namespace toolsTempalte
 
                 IEnumerable<XElement> xPaths = xRoot.Elements();
 
+               
+                int totalIndex = 0;
+
                 foreach (XElement xPath in xPaths)
                 {
                     if (xPath.Name.ToString() == "Path" )
@@ -2102,9 +2113,15 @@ namespace toolsTempalte
                         int indexX = index % tileSetX;
                         int indexY = index / tileSetX;
 
-                        map[indexX, indexY].TabIndex = layer;
-                        map[indexX, indexY].X = indexX;
-                        map[indexX, indexY].Y = indexY;
+
+                        int mapIndexX = totalIndex / mapY;
+                        int mapIndexY = totalIndex % mapY;
+                        map[mapIndexX, mapIndexY].TabIndex = layer;
+                        map[mapIndexX, mapIndexY].X = indexX;
+                        map[mapIndexX, mapIndexY].Y = indexY;
+
+                        totalIndex++;
+                     
 
                     }
 
