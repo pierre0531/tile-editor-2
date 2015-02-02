@@ -12,6 +12,10 @@ using System.Xml;
 
 namespace toolsTempalte
 {
+    public enum enumCollision{ water, wall,None }
+    public enum enumEvent { spawn, coop, Devil, Angel, Troll, Gulu, God, None }
+    public enum enumObject { player1, player2, Devil, Angel, Troll, Gulu, God, None }
+ 
     struct tileCollection
     {
         tileMap m_tileMap;
@@ -90,10 +94,12 @@ namespace toolsTempalte
 
         //for multi-layer
         List<tileCollection> m_tileMap = new List<tileCollection>();
+      
         public Form1()
         {
             InitializeComponent();
             D3D.Initialize(panel1, true);
+            D3D.AddRenderTarget(panel1);
             D3D.AddRenderTarget(panel3);
             TM.Initialize(D3D.Device, D3D.Sprite);
 
@@ -115,18 +121,23 @@ namespace toolsTempalte
             {
                 case paintMode.full:
                     buttonFull.Checked = true;
+                    tabEditLayer.Visible = false;
                     break;
                 case paintMode.stamp:
                     ButtonStamp.Checked = true;
+                    tabEditLayer.Visible = false;
                     break;
                 case paintMode.collision:
                     collisionButton.Checked = true;
+                    tabEditLayer.Visible = true;
                     break;
                 case paintMode.eventTrigger:
                     EventButton.Checked = true;
+                    tabEditLayer.Visible = true;
                     break;
                 case paintMode.Object:
                     ObjectButton.Checked = true;
+                    tabEditLayer.Visible = true;
                     break;
                 default:
                     break;
@@ -161,6 +172,25 @@ namespace toolsTempalte
              m_screenSizeW = 800;
              m_screenSizeH = 600;
 
+            //add combo to object
+             addCombox(comboBoxObject, default(enumObject));
+             addCombox(comboBoxEvent, default(enumEvent));
+             addCombox(comboBoxCollision, default(enumCollision));
+
+        }
+
+        private void addCombox(ComboBox _ComboBox, Enum _enum)
+        {
+            //add combo to object
+            foreach (var item in Enum.GetValues(_enum.GetType()))
+            {
+                _ComboBox.Items.Add(item);
+
+                //default combobox
+                if (_ComboBox.Items.Count > 0)
+                    _ComboBox.SelectedIndex = 0;
+
+            }
         }
         private void initMap(ref Tile[,] _map, int _mapX, int _mapY)
         {
@@ -178,8 +208,7 @@ namespace toolsTempalte
             }
         }
 
-        public new void Update()
-        { }
+       
         public void Render()
         {
 
@@ -207,17 +236,7 @@ namespace toolsTempalte
             //using tabIndex to get which tab is selected
             //int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
 
-            //Draw the hollow Rect 
             Point offset = panel1.AutoScrollPosition;
-            if(checkBoxGrid.Checked)
-            for (int x = 0; x < mapX; x++)
-            {
-                for (int y = 0; y < mapY; y++)
-                {
-                    D3D.DrawHollowRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y, tileWidth, tileHeigth),
-                        Color.FromArgb(255, 0, 0, 0), 1);
-                }
-            }
 
             //safe check
             if(MapCheckBox.Checked == true)
@@ -238,6 +257,9 @@ namespace toolsTempalte
                         src.Size = new Size(tileWidth, tileHeigth);
                         int locationX = x * tileWidth + offset.X;
                         int locationY = y * tileWidth + offset.Y;
+
+                        //safe check
+                        if (map[x, y].TabIndex < m_tileMap.Count)
                         TM.Draw(map[x, y].TabIndex, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
                       //  TM.Draw(TextureID, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
 
@@ -265,6 +287,18 @@ namespace toolsTempalte
                         break;
                 }
             }
+
+            //Draw the hollow Rect 
+        
+            if (checkBoxGrid.Checked)
+                for (int x = 0; x < mapX; x++)
+                {
+                    for (int y = 0; y < mapY; y++)
+                    {
+                        D3D.DrawHollowRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y, tileWidth, tileHeigth),
+                            Color.FromArgb(255, 0, 0, 0), 1);
+                    }
+                }
 
             switch (m_mode)
             {
@@ -409,7 +443,7 @@ namespace toolsTempalte
                     src.Size = new Size(tileWidth, tileHeigth);
                   
                     int locationX = x * tileWidth + offset.X;
-                    int locationY = y * tileWidth + offset.Y;
+                    int locationY = y * tileHeigth + offset.Y;
 
 
                     TM.Draw( mapFullTile[x, y].TabIndex, locationX, locationY, 1, 1, src);
@@ -455,19 +489,7 @@ namespace toolsTempalte
             int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
 
             Panel panelTile = m_tileMap[tempTabIndex].Panel;
-         //   panelTile = panel2;
-         
-
-            //
-          
-         
-           // panelTile.Parent = tabAsset.TabPages[tempTabIndex];
-            //panelTile.Dock = DockStyle.Fill;
-         //   panelTile.Location = new Point(panelTile.Parent.Left, panelTile.Parent.Top);
-            //panelTile.AutoScrollMinSize = new Size(TM.GetTextureWidth(tempTextureID), TM.GetTextureHeight(tempTextureID));
-       //
-
-
+ 
         
            // D3D.Clear(panel2, Color.WhiteSmoke);
             D3D.Clear(panelTile, Color.WhiteSmoke);
@@ -492,7 +514,7 @@ namespace toolsTempalte
             //draw green selection area
             for (int x = minor(selectedTile.X, stampSelectedTile.X); x <= major(selectedTile.X, stampSelectedTile.X); x++)
             {
-                for (int y =  minor(selectedTile.Y, stampSelectedTile.Y); y <= major(selectedTile.Y, stampSelectedTile.Y); y++)
+                for (int y = minor(selectedTile.Y, stampSelectedTile.Y); y <= major(selectedTile.Y, stampSelectedTile.Y); y++)
                 {
                     D3D.DrawRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y,
                         tileWidth, tileHeigth), Color.FromArgb(128, 0, 255, 0));
@@ -515,12 +537,13 @@ namespace toolsTempalte
 
         private int major(int x, int y)
         {
-            if (x > y)
+            if (x >= y)
                 return x;
             else
                 return y;
         }
 
+     
         private void miniMapDrawBox(int _scaleX,int _scaleY)
         {
             if(MapCheckBox.Checked == true)
@@ -553,10 +576,11 @@ namespace toolsTempalte
                     src.Y = map[x, y].Y * tileHeigth;
                     src.Size = new Size(tileWidth, tileHeigth);
 
+                    //safe check
+                    if (map[x, y].TabIndex<m_tileMap.Count)
                     TM.Draw(map[x, y].TabIndex, x * tileWidth / scaleX, y * tileHeigth / scaleY,
                         1 / (float)scaleX, 1 / (float)scaleY, src);
-                    //TM.Draw(TextureID, x * tileWidth / scaleX, y * tileHeigth / scaleY,
-                    //    1 / (float)scaleX, 1 / (float)scaleY, src);
+                 
                 }
             } 
         }
@@ -695,9 +719,19 @@ namespace toolsTempalte
         //safe check whether map out of range
         bool outOfRangeTile(MouseEventArgs e)
         {
+            //get tabIndex
+            int tempTabIndex = tabAsset.SelectedIndex;
 
-            if (e.Location.X >= tileWidth * tileSetX  || e.Location.X <= 0 ||
-                e.Location.Y >= tileHeigth * tileSetY || e.Location.Y <= 0)
+            //using tabIndex to get which tab is selected
+            int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+
+            Panel panelTileSet = m_tileMap[tempTabIndex].Panel;
+
+            float locationX = e.Location.X - panelTileSet.AutoScrollPosition.X;
+            float locationY = e.Location.Y - panelTileSet.AutoScrollPosition.Y;
+
+            if (locationX >= tileSetX * tileWidth || locationX <= 0 ||
+                locationY >= tileSetY * tileHeigth || locationY <= 0)          
                 return true;
 
             return false;
@@ -708,9 +742,12 @@ namespace toolsTempalte
         //safe check whether map out of range
         bool outOfRangeMap(MouseEventArgs e)
         {
+         
+            float locationX = e.Location.X - panel1.AutoScrollPosition.X;
+            float locationY = e.Location.Y - panel1.AutoScrollPosition.Y;
 
-            if (e.Location.X >= mapX * tileWidth || e.Location.X <= 0 ||
-                e.Location.Y >= mapY * tileHeigth || e.Location.Y <= 0)
+            if (locationX > mapX * tileWidth || locationX < 0 ||
+                locationY > mapY * tileHeigth || locationY < 0)
                 return true;
 
             return false;
@@ -959,12 +996,15 @@ namespace toolsTempalte
         }
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
-             if (outOfRangeMap(e))
+           
+            if (outOfRangeMap(e))
                 return;
 
             //Caculate where is the mouse
             int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
             int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
+
+            toolStripLabel1.Text = e.Location.ToString()+x.ToString()+y.ToString();
 
             switch (m_mode)
             {
@@ -1009,21 +1049,21 @@ namespace toolsTempalte
                 //using tabIndex to get which tab is selected
                 int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
 
-                Panel panel2 = m_tileMap[tempTabIndex].Panel;
+                Panel panelTileSet = m_tileMap[tempTabIndex].Panel;
  
 
                 //get the mouse tile location
-                int x = (e.Location.X - panel2.AutoScrollPosition.X) / tileWidth;//0~5
-                int y = (e.Location.Y - panel2.AutoScrollPosition.Y) / tileHeigth;//0~1
+                int x = (e.Location.X - panelTileSet.AutoScrollPosition.X) / tileWidth;//0~5
+                int y = (e.Location.Y - panelTileSet.AutoScrollPosition.Y) / tileHeigth;//0~1
 
                 //safe check
-                if (x > mapX )
-                    x = mapX  - 1;
+                if (x >= tileSetX )
+                    x = tileSetX - 1;
                 else if (x < 0)
                     x = 0;
 
-                if (y > mapY)
-                    y = mapY - 1;
+                if (y >= tileSetY)
+                    y = tileSetY - 1;
                 else if (y < 0)
                     y = 0;
 
@@ -1067,6 +1107,14 @@ namespace toolsTempalte
 
             int endX = stampSelectedTile.X;
             int endY = stampSelectedTile.Y;
+
+            //safe check
+            if (endX >= tileSetX)
+                endX = tileSetX;
+
+            //safe check
+            if (endY >= tileSetY)
+                endY = tileSetY;
 
             int relativeXLength = endX - startX;
             int relativeYLength = endY - startY;
@@ -1123,9 +1171,9 @@ namespace toolsTempalte
 
             stampSelectedTile.X = x2;
             stampSelectedTile.Y = y2;
-
+        
             //make hover
-            hoverTileCollection = new Tile[x2 - x1, y2 - y1];
+            hoverTileCollection = new Tile[stampSelectedTile.X - selectedTile.X, stampSelectedTile.Y -    selectedTile.Y ];
         }
 
 
@@ -1166,8 +1214,6 @@ namespace toolsTempalte
         
         }
 
-
-
         //////////////////////////////////////tool windows////////////////////////////////////
         void tool_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -1204,13 +1250,12 @@ namespace toolsTempalte
                 selectedTile.Y = tileHeigth - 1;
 
             setTheScroll();
-            
-
         }
         void setTheScroll()
         {
             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
         }
+
         void resetMapSize(int _oldX, int _oldY, int _newX, int _newY)
         {
             //init temp Tile
@@ -1264,11 +1309,6 @@ namespace toolsTempalte
         private void ImportAsset_Click(object sender, EventArgs e)
         {
             openFile();
-           // int tempTabIndex = tabAsset.SelectedIndex;
-          //  int temptextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
-         //   panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(temptextureID), TM.GetTextureHeight(temptextureID));
-            //panel2.AutoScrollMinSize = new Size(TM.GetTextureWidth(TextureID), TM.GetTextureHeight(TextureID));
-
         }
 
         private void importTileHelper(string open)
@@ -1276,6 +1316,11 @@ namespace toolsTempalte
             //Open a stream for reading
             tileMap tempListMap = new tileMap();
             tempListMap.TextureID = TM.LoadTexture(open);
+            
+            //error check
+            if (tempListMap.TextureID == -1)
+                return;
+
             tempListMap.PathName = open;
 
             //new tab
@@ -1291,7 +1336,6 @@ namespace toolsTempalte
 
             //setting the new tab
             tempPanel.Parent = tempTabPage;
-            //   tempPanel.Location = new Point(0, 0);
             D3D.AddRenderTarget(tempPanel);
 
             //add action to the panel
@@ -1305,6 +1349,7 @@ namespace toolsTempalte
             temptileCollection.Panel = tempPanel;
             m_tileMap.Add(temptileCollection);        
         }
+
         private void openFile()
         {  //Create an open file
             OpenFileDialog open = new OpenFileDialog();
@@ -1332,7 +1377,6 @@ namespace toolsTempalte
 
                  //setting the new tab
                  tempPanel.Parent = tempTabPage;
-                 //   tempPanel.Location = new Point(0, 0);
                  D3D.AddRenderTarget(tempPanel);
 
                 //add action to the panel
@@ -1347,16 +1391,7 @@ namespace toolsTempalte
                  m_tileMap.Add(temptileCollection);                        
             }
         }
-        private void newToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
+     
         private void collisionButton_Click(object sender, EventArgs e)
         {
             setMode(paintMode.collision);
@@ -1391,8 +1426,8 @@ namespace toolsTempalte
             m_tempRect[1] = _y;
             m_tempRect[2] = _x;
             m_tempRect[3] = _y;
-
         }
+
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
             //calculate which selection area
@@ -1444,30 +1479,73 @@ namespace toolsTempalte
             Rectangle tempRect = new Rectangle(new Point(m_tempRect[0], m_tempRect[1]), new Size(m_tempRect[2] - m_tempRect[0],
                 m_tempRect[3] - m_tempRect[1]));
 
-           Event_Collision_Object_Rect tempEventRect = new Event_Collision_Object_Rect();
-           tempEventRect.Rect = tempRect;
-           tempEventRect.Name = "default";
-          
+           Event_Collision_Object_Rect tempECORect = new Event_Collision_Object_Rect();
+           tempECORect.Rect = tempRect;
+       
            switch (m_mode)
            {         
                case paintMode.collision:
-                   m_collisionRect.Add(tempEventRect);
-                   listBoxCollision.Items.Add(tempEventRect);
+                   //add to data structure    
+                   addToDataStructure(ref tempECORect);
+
                    break;
                case paintMode.eventTrigger:
-                   m_eventRect.Add(tempEventRect);
-                   listBoxEvent.Items.Add(tempEventRect);
+                   //add to data structure    
+                   addToDataStructure(ref tempECORect);      
+
                    break;
-               case paintMode.Object:                                               
-                   tempEventRect.Size = new Size(20, 20);
-                   m_objectPt.Add(tempEventRect);
-                   listBoxObject.Items.Add(tempEventRect);
-                   
+               case paintMode.Object:           
+                   //add to data structure    
+                   addToDataStructure(ref tempECORect);
+                  
                    break;
+
                default:
                    break;
            }
          
+        }
+        private void addToDataStructure(ref Event_Collision_Object_Rect _tempEventRect)
+        {
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            ComboBox tempComboBox = new ComboBox();
+            switch (m_mode)
+            {
+                case paintMode.collision:
+                    tempListBox = listBoxCollision;
+                    tempCollection = m_collisionRect;
+                    tempComboBox = comboBoxCollision;
+                    break;
+                case paintMode.eventTrigger:
+                    tempListBox = listBoxEvent;
+                    tempCollection = m_eventRect;
+                    tempComboBox = comboBoxEvent;
+                    break;
+                case paintMode.Object:
+                    tempListBox = listBoxObject;
+                    tempCollection = m_objectPt;
+                    tempComboBox = comboBoxObject;
+                    _tempEventRect.Size = new Size(20, 20);
+                    break;
+                default:
+                    break;
+            }
+
+            //add to data structure                 
+            int comboIndex = tempComboBox.SelectedIndex;
+
+            //safe check
+            if (comboIndex != -1)
+                _tempEventRect.Name = tempComboBox.Items[comboIndex].ToString();
+
+            //add to data collection
+            tempCollection.Add(_tempEventRect);
+
+            //add to listBox
+            tempListBox.Items.Add(_tempEventRect);
+            tempListBox.SelectedIndex = tempListBox.Items.Count - 1; 
+          
         }
 
         private void EventButton_Click(object sender, EventArgs e)
@@ -1487,93 +1565,75 @@ namespace toolsTempalte
         {
             this.Close();
         }
-
-        //box collision//
-        //***************************************************************************************//
-        private void listBoxCollision_MouseClick(object sender, MouseEventArgs e)
+        private void buttonUpdate()
         {
-            if (listBoxCollision.SelectedIndex == -1)
+            //three data structure
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            ComboBox tempComboBox = new ComboBox();
+
+            //temp Event_Collision_Object_Rect
+            Event_Collision_Object_Rect tempECO_Rect = new Event_Collision_Object_Rect();
+
+            //get the value
+            NumericUpDown tempBottom = new NumericUpDown();
+            NumericUpDown tempTop = new NumericUpDown();
+            NumericUpDown tempLeft = new NumericUpDown();
+            NumericUpDown tempRight = new NumericUpDown();
+            switch (m_mode)
+            {
+                case paintMode.collision:
+                    //three data structure
+                    tempListBox = listBoxCollision;
+                    tempCollection = m_collisionRect;
+                    tempComboBox = comboBoxCollision;
+
+                    //get the value
+                    tempBottom = numCollision_bottom;
+                    tempTop = numCollision_top;
+                    tempLeft = numCollision_left;
+                    tempRight = numCollision_right;
+                    break;
+                case paintMode.eventTrigger:
+                    //three data structure
+                    tempListBox = listBoxEvent;
+                    tempCollection = m_eventRect;
+                    tempComboBox = comboBoxEvent;
+
+                    //get the value
+                    tempBottom = numEvent_bottom;
+                    tempTop = numEvent_top;
+                    tempLeft = numEvent_left;
+                    tempRight = numEvent_right;
+                    break;
+                case paintMode.Object:
+                    //three data structure
+                    tempListBox = listBoxObject;
+                    tempCollection = m_objectPt;
+                    tempComboBox = comboBoxObject;
+
+                    //get the value
+                    tempTop = numObject_top;
+                    tempLeft = numObject_left;
+                    tempRight.Maximum = 9999999999999;
+                    tempBottom.Maximum = 9999999999999;
+
+                    tempRight.Value = numObject_left.Value + 20;
+                    tempBottom.Value = numObject_top.Value + 20;
+                    break;
+                default:
+                    break;
+
+            }
+
+            if (tempListBox.SelectedIndex == -1)
                 return;
 
-            Event_Collision_Object_Rect r = (Event_Collision_Object_Rect)listBoxCollision.Items[listBoxCollision.SelectedIndex];
-          
-            numCollision_top.Value = r.Rect.Top;
-            numCollision_left.Value = r.Rect.Left;
-            numCollision_right.Value = r.Rect.Right;
-            numCollision_bottom.Value = r.Rect.Bottom;
-        }
-        private void buttonCollisionDelete_Click(object sender, EventArgs e)
-        {
-            if (listBoxCollision.SelectedIndex == -1)
-                return;
-
-            int tempIndex = listBoxCollision.SelectedIndex;
-            listBoxCollision.Items.RemoveAt(tempIndex);
-            m_collisionRect.RemoveAt(tempIndex);
-
-        }
-
-        private void buttonUpdateCollisioin_Click(object sender, EventArgs e)
-        {
-            if (listBoxCollision.SelectedIndex == -1)
-                return;
-
-            Rectangle tempRectangle = new Rectangle();
-            Event_Collision_Object_Rect tempEventRetangle = new Event_Collision_Object_Rect();
             //get the number info
-            int bottom = (int)numCollision_bottom.Value;
-            int right = (int)numCollision_right.Value;
-            int top = (int)numCollision_top.Value;
-            int left = (int)numCollision_left.Value;
-            int width = right - left;
-            int height = bottom - top;
-
-            //safe check
-            if (width <= 0)
-                width = 0;
-            if (height <= 0)
-                height = 0;
-
-        
-            //copy info to the rect
-            tempRectangle.Location = new Point(left, top);
-            tempRectangle.Width = width;
-            tempRectangle.Height = height;
-
-            //copy rect back
-            tempEventRetangle.Rect = tempRectangle;
-
-            //old one index
-            int tempIndex = listBoxCollision.SelectedIndex;
-
-            //insert a new one
-            listBoxCollision.Items.Insert(tempIndex, tempEventRetangle);
-            m_collisionRect.Insert(tempIndex, tempEventRetangle);
-
-            //remove the old one
-            listBoxCollision.Items.RemoveAt(tempIndex + 1);
-            m_collisionRect.RemoveAt(tempIndex + 1);
-            
-            listBoxCollision.SelectedIndex = tempIndex;
-      
-        }
-
-        //box event//
-        //***************************************************************************************//
-
-
-        private void buttonUpdateEvent_Click(object sender, EventArgs e)
-        {
-            if (listBoxEvent.SelectedIndex == -1)
-                return;
-
-            Rectangle tempRectangle = new Rectangle();
-            Event_Collision_Object_Rect tempEventRetangle = new Event_Collision_Object_Rect();
-            //get the number info
-            int bottom = (int)numEvent_bottom.Value;
-            int right = (int)numEvent_right.Value;
-            int top = (int)numEvent_top.Value;
-            int left = (int)numEvent_left.Value;
+            int bottom = (int)tempBottom.Value;
+            int right = (int)tempRight.Value;
+            int top = (int)tempTop.Value;
+            int left = (int)tempLeft.Value;
             int width = right - left;
             int height = bottom - top;
 
@@ -1584,125 +1644,195 @@ namespace toolsTempalte
                 height = 0;
 
             //name here
-            tempEventRetangle.Name = textBoxEvent.Text;
+            int comboIndex = tempComboBox.SelectedIndex;
+            if(comboIndex >=0)
+            tempECO_Rect.Name = tempComboBox.Items[comboIndex].ToString();
+
+            //temp Rect
+            Rectangle tempRect = new Rectangle();
 
             //copy info to the rect
-            tempRectangle.Location = new Point(left, top);
-            tempRectangle.Width = width;
-            tempRectangle.Height = height;
+            tempRect.Location = new Point(left, top);
+            tempRect.Width = width;
+            tempRect.Height = height;
 
             //copy rect back
-            tempEventRetangle.Rect = tempRectangle;
+            tempECO_Rect.Rect = tempRect;
 
             //old one index
-            int tempIndex = listBoxEvent.SelectedIndex;
+            int tempIndex = tempListBox.SelectedIndex;
 
             //insert a new one
-            listBoxEvent.Items.Insert(tempIndex, tempEventRetangle);
-            m_eventRect.Insert(tempIndex, tempEventRetangle);
+            tempListBox.Items.Insert(tempIndex, tempECO_Rect);
+            tempCollection.Insert(tempIndex, tempECO_Rect);
 
-            //remove the old one
-            listBoxEvent.Items.RemoveAt(tempIndex + 1);
-            m_eventRect.RemoveAt(tempIndex + 1);
+            //remove old one
+            tempListBox.Items.RemoveAt(tempIndex+1);
+            tempCollection.RemoveAt(tempIndex+1);
 
-            listBoxEvent.SelectedIndex = tempIndex;
+            //re select list index
+            tempListBox.SelectedIndex = tempIndex;
+        }
+
+        private void listBoxMouseSelectIndexChanged()
+        {
+            //three data structure
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            ComboBox tempComboBox = new ComboBox();
+
+            //get the value
+            NumericUpDown tempBottom = new NumericUpDown();
+            NumericUpDown tempTop = new NumericUpDown();
+            NumericUpDown tempLeft = new NumericUpDown();
+            NumericUpDown tempRight = new NumericUpDown();
+            switch (m_mode)
+            {
+                case paintMode.collision:
+                    //three data structure
+                    tempListBox = listBoxCollision;
+                    tempCollection = m_collisionRect;
+                    tempComboBox = comboBoxCollision;
+
+                    //get the value
+                    tempBottom = numCollision_bottom;
+                    tempTop = numCollision_top;
+                    tempLeft = numCollision_left;
+                    tempRight = numCollision_right;
+                    break;
+                case paintMode.eventTrigger:
+                    //three data structure
+                    tempListBox = listBoxEvent;
+                    tempCollection = m_eventRect;
+                    tempComboBox = comboBoxEvent;
+
+                    //get the value
+                    tempBottom = numEvent_bottom;
+                    tempTop = numEvent_top;
+                    tempLeft = numEvent_left;
+                    tempRight = numEvent_right;
+                    break;
+                case paintMode.Object:
+                    //three data structure
+                    tempListBox = listBoxObject;
+                    tempCollection = m_objectPt;
+                    tempComboBox = comboBoxObject;
+
+                    //get the value
+                    tempTop = numObject_top;
+                    tempLeft = numObject_left;
+                    tempRight.Maximum = 9999999999999;
+                    tempBottom.Maximum = 9999999999999;
+
+                    tempRight.Value = numObject_left.Value + 20;
+                    tempBottom.Value = numObject_top.Value + 20;
+                    break;
+                default:
+                    break;
+
+            }
+
+            if (tempListBox.SelectedIndex == -1)
+                return;
+
+            Event_Collision_Object_Rect r = (Event_Collision_Object_Rect)tempListBox.Items[tempListBox.SelectedIndex];
+            tempTop.Value = r.Rect.Top;
+            tempLeft.Value = r.Rect.Left;
+            tempRight.Value = r.Rect.Right;
+            tempBottom.Value = r.Rect.Bottom;
+            tempComboBox.SelectedIndex = tempComboBox.FindString(r.Name);     
+        }
+
+        private void buttonDelete()
+        {
+            //three data structure
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            ComboBox tempComboBox = new ComboBox();
+            TextBox tempTextBox = new TextBox();
+
+            //use reference to get content
+            switchHelper(ref tempCollection, ref tempListBox, ref tempComboBox, ref tempTextBox);
+
+            if (tempListBox.SelectedIndex == -1)
+                return;
+
+            int tempIndex = tempListBox.SelectedIndex;
+            tempListBox.Items.RemoveAt(tempIndex);
+            tempCollection.RemoveAt(tempIndex);
+
+            //re select new index
+            tempListBox.SelectedIndex = tempListBox.Items.Count - 1;
+        }
+        //box collision//
+        //***************************************************************************************//
+
+        private void buttonCollisionDelete_Click(object sender, EventArgs e)
+        {
+            buttonDelete();
+          
+
+        }
+
+        private void buttonUpdateCollisioin_Click(object sender, EventArgs e)
+        {
+            buttonUpdate();
+         
+        }
+
+        private void listBoxCollision_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            listBoxMouseSelectIndexChanged();
+           
+        }
+
+
+        //box event//
+        //***************************************************************************************//
+
+      
+        private void buttonUpdateEvent_Click(object sender, EventArgs e)
+        {
+            buttonUpdate();
+          
         }
 
        
       //event index change
         private void listBoxEvent_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listBoxEvent.SelectedIndex == -1)
-                return;
-
-            Event_Collision_Object_Rect r = (Event_Collision_Object_Rect)listBoxEvent.Items[listBoxEvent.SelectedIndex];
-            numEvent_top.Value = r.Rect.Top;
-            numEvent_left.Value = r.Rect.Left;
-            numEvent_right.Value = r.Rect.Right;
-            numEvent_bottom.Value = r.Rect.Bottom;
-            textBoxEvent.Text = r.Name;
+            listBoxMouseSelectIndexChanged();
+            
         }
 
         //event delete
         private void buttonEventDelete_Click(object sender, EventArgs e)
         {
-            if (listBoxEvent.SelectedIndex == -1)
-                return;
-
-            int tempIndex = listBoxEvent.SelectedIndex;
-            listBoxEvent.Items.RemoveAt(tempIndex);
-            m_eventRect.RemoveAt(tempIndex);
-         
+            buttonDelete();
         }
 
         //object event//
         //***************************************************************************************//
-        private void listBoxObject_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (listBoxObject.SelectedIndex == -1)
-                return;
-            
-            Event_Collision_Object_Rect r = (Event_Collision_Object_Rect)listBoxObject.Items[listBoxObject.SelectedIndex];
-            numObject_left.Value = r.Rect.Top;
-            numObject_top.Value = r.Rect.Left;
-            textBoxObject.Text = r.Name;
-        }
+    
 
         private void buttonObjectDelete_Click(object sender, EventArgs e)
         {
-            if (listBoxObject.SelectedIndex == -1)
-                return;
-            
-            int tempIndex = listBoxObject.SelectedIndex;
-            listBoxObject.Items.RemoveAt(tempIndex);
-            m_objectPt.RemoveAt(tempIndex);
-
+            buttonDelete();
         }
 
         private void buttonObjectUpdate_Click(object sender, EventArgs e)
         {
-            if (listBoxObject.SelectedIndex == -1)
-                return;
-        
-            Rectangle tempRectangle = new Rectangle();
-            Event_Collision_Object_Rect tempEventRetangle = new Event_Collision_Object_Rect();
-            //get the number info
-            int top = (int)numObject_top.Value;
-            int left = (int)numObject_left.Value;
-            int width =20;
-            int height = 20;
-
-            //safe check
-            if (width <= 0)
-                width = 0;
-            if (height <= 0)
-                height = 0;
-            
-            //name here
-            tempEventRetangle.Name = textBoxObject.Text;
-
-            //copy info to the rect
-            tempRectangle.Location = new Point(left, top);
-            tempRectangle.Width = width;
-            tempRectangle.Height = height;
-
-            //copy rect back
-            tempEventRetangle.Rect = tempRectangle;
-
-            //old one index
-            int tempIndex = listBoxObject.SelectedIndex;
-
-            //insert a new one
-            listBoxObject.Items.Insert(tempIndex, tempEventRetangle);
-            m_objectPt.Insert(tempIndex, tempEventRetangle);
-
-            //remove the old one
-            listBoxObject.Items.RemoveAt(tempIndex + 1);
-            m_objectPt.RemoveAt(tempIndex + 1);
-            
-            listBoxObject.SelectedIndex = tempIndex;
+            buttonUpdate();
+           
         }
 
+        private void listBoxObject_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            listBoxMouseSelectIndexChanged();
+            
+        }
+
+      
         private void buttonOjectNext_Click(object sender, EventArgs e)
         {
             buttonNext();
@@ -1712,24 +1842,12 @@ namespace toolsTempalte
         {
             List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
             ListBox tempListBox = new ListBox();
-            switch (m_mode)
-            {            
-                case paintMode.collision:
-                    tempListBox = listBoxCollision;
-                    tempCollection = m_collisionRect;
-                    break;
-                case paintMode.eventTrigger:
-                    tempListBox = listBoxEvent;
-                    tempCollection = m_eventRect;
-                    break;
-                case paintMode.Object:
-                    tempListBox = listBoxObject;
-                    tempCollection = m_objectPt;
-                    break;
-                default:
-                    break;
-            }
-            
+            ComboBox tempComboBox = new ComboBox();
+            TextBox tempTextBox = new TextBox();
+
+            //use reference to get content
+            switchHelper(ref tempCollection, ref tempListBox, ref tempComboBox, ref tempTextBox);
+
             //safe check
             if (tempCollection.Count <= 0)
                 return;
@@ -1757,23 +1875,11 @@ namespace toolsTempalte
         {
             List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
             ListBox tempListBox = new ListBox();
-            switch (m_mode)
-            {
-                case paintMode.collision:
-                    tempListBox = listBoxCollision;
-                    tempCollection = m_collisionRect;
-                    break;
-                case paintMode.eventTrigger:
-                    tempListBox = listBoxEvent;
-                    tempCollection = m_eventRect;
-                    break;
-                case paintMode.Object:
-                    tempListBox = listBoxObject;
-                    tempCollection = m_objectPt;
-                    break;
-                default:
-                    break;
-            }
+            ComboBox tempComboBox = new ComboBox();
+            TextBox tempTextBox = new TextBox();
+
+            //use reference to get content
+            switchHelper(ref tempCollection, ref tempListBox, ref tempComboBox, ref tempTextBox);
 
             //safe check
             if (tempCollection.Count <= 0)
@@ -1944,9 +2050,9 @@ namespace toolsTempalte
                
                 //tile map
                 //object left,top,name
-                 for (int x = 0; x < mapX; x++)
+                for (int y = 0; y < mapY; y++)
                   {
-                    for (int y = 0; y < mapY; y++)
+                      for (int x = 0; x < mapX; x++)
                         {
                         int indexX = map[x, y].X;
                         int indexY = map[x, y].Y;
@@ -1955,7 +2061,7 @@ namespace toolsTempalte
                         xRoot.Add(tileMap);
                                 
                         //calculate total grid
-                        int gridTotal = indexX+indexY*tileSetY+tileSetX*tileSetY*layerIndex;
+                        int gridTotal = indexX + indexY * tileSetX + tileSetX * tileSetY * layerIndex;
 
                             XAttribute tileMap_index = new XAttribute("grid", gridTotal);
                             tileMap.Add(tileMap_index);
@@ -2114,8 +2220,8 @@ namespace toolsTempalte
                         int indexY = index / tileSetX;
 
 
-                        int mapIndexX = totalIndex / mapY;
-                        int mapIndexY = totalIndex % mapY;
+                        int mapIndexX = totalIndex % mapX;
+                        int mapIndexY = totalIndex / mapX;
                         map[mapIndexX, mapIndexY].TabIndex = layer;
                         map[mapIndexX, mapIndexY].X = indexX;
                         map[mapIndexX, mapIndexY].Y = indexY;
@@ -2130,6 +2236,198 @@ namespace toolsTempalte
             }
         }
 
+        private void panel3_MouseMove(object sender, MouseEventArgs e)
+        {
+            toolStripLabel1.Text = e.Location.ToString() ;
+        }
+
+        private void toolStripLabel1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel3_MouseMove_1(object sender, MouseEventArgs e)
+        {
+            toolStripLabel1.Text = e.Location.ToString() ;
+        }
+
+        private void panel2_MouseMove_1(object sender, MouseEventArgs e)
+        {
+            toolStripLabel1.Text = e.Location.ToString();
+        }
+
+        private void buttonNameDelete_Click(object sender, EventArgs e)
+        {
+            //three data structure
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            ComboBox tempComboBox = new ComboBox();
+
+            TextBox tempTextBox = new TextBox();
+
+            //use reference to get content
+            switchHelper(ref tempCollection, ref tempListBox, ref tempComboBox, ref tempTextBox);
+
+            if (tempComboBox.SelectedIndex == -1)
+                return;
+
+            //remove from comboBox
+            int tempComboIndex =  tempComboBox.SelectedIndex;
+
+            //get compare name
+            string compareName = tempComboBox.Items[tempComboIndex].ToString();
+      
+            //set at least none name
+            if (compareName != "None")
+            {
+                //remove from combo box
+                tempComboBox.Items.RemoveAt(tempComboIndex);
+
+                //update name to none
+                UpdateNameHelper(ref tempCollection, ref tempListBox, compareName, "None");
+            }
+          
+
+            //re select new index
+            tempComboBox.SelectedIndex = tempComboBox.Items.Count - 1;
+        }
+
+        private void buttonNameAdd_Click(object sender, EventArgs e)
+        {
+            NameAdd();
+        }
+
+        private void NameAdd()
+        {
+
+            //three data structure
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            ComboBox tempComboBox = new ComboBox();
+            TextBox tempTextBox = new TextBox();
+
+            //use reference to get content
+            switchHelper(ref tempCollection, ref tempListBox, ref tempComboBox, ref tempTextBox);
+        
+            //add to the last
+            int tempComboIndex = tempComboBox.Items.Count;
+
+            //insert a new one
+            if (tempTextBox.Text != "")
+            tempComboBox.Items.Insert(tempComboIndex, tempTextBox.Text);
+
+            //clear text
+            tempTextBox.Text = "";
+
+            //re select new index
+            tempComboBox.SelectedIndex = tempComboBox.Items.Count - 1;
+        }
+
+      
+
+        private void switchHelper(ref  List<Event_Collision_Object_Rect> tempCollection, ref ListBox tempListBox, 
+            ref ComboBox tempComboBox, ref TextBox tempTextBox)
+        {
+            switch (m_mode)
+            {
+                case paintMode.collision:
+                    //three data structure
+                    tempListBox = listBoxCollision;
+                    tempCollection = m_collisionRect;
+                    tempComboBox = comboBoxCollision;
+                    tempTextBox = textBoxChangeCollision;
+                    break;
+                case paintMode.eventTrigger:
+                    //three data structure
+                    tempListBox = listBoxEvent;
+                    tempCollection = m_eventRect;
+                    tempComboBox = comboBoxEvent;
+                    tempTextBox = textBoxChangeEvent;
+                    break;
+                case paintMode.Object:
+                    //three data structure
+                    tempListBox = listBoxObject;
+                    tempCollection = m_objectPt;
+                    tempComboBox = comboBoxObject;
+                    tempTextBox = textBoxChangeObject;
+                    break;
+                default:
+                    break;
+
+            } 
+        }
+        private void buttonUpdateName()
+        {  //three data structure
+            List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
+            ListBox tempListBox = new ListBox();
+            ComboBox tempComboBox = new ComboBox();
+            TextBox tempTextBox = new TextBox();
+
+            //use reference to get content
+            switchHelper(ref tempCollection, ref tempListBox, ref tempComboBox, ref tempTextBox);
+        
+
+            if (tempComboBox.SelectedIndex == -1)
+                return;
+
+            int tempComboIndex = tempComboBox.SelectedIndex;
+
+            string compareName = tempComboBox.Items[tempComboIndex].ToString();
+      
+            //insert a new one
+            if (tempTextBox.Text != "")
+            {
+                tempComboBox.Items.Insert(tempComboIndex, tempTextBox.Text);
+
+                //remove the old one
+                tempComboBox.Items.RemoveAt(tempComboIndex + 1);
+
+                //update new info
+               UpdateNameHelper(ref tempCollection, ref tempListBox, compareName, tempTextBox.Text);
+
+                //clear
+                tempTextBox.Text = "";
+            }
+
+            //re select combo index
+            tempComboBox.SelectedIndex = tempComboIndex;         
+        }
+
+        private void buttonCollisionUpdateName_Click(object sender, EventArgs e)
+        {
+            buttonUpdateName();
+        }
+
+        private void UpdateNameHelper(ref List<Event_Collision_Object_Rect> _collection, ref ListBox _listBox,
+            string _compareName,string _replaceName)
+        {
+            for (int i = 0; i < _collection.Count; i++)
+                {
+                    if (_collection[i].Name == _compareName)
+                    {
+                        //temp Event_Collision_Object_Rect
+                        Event_Collision_Object_Rect tempECO_Rect = new Event_Collision_Object_Rect();
+                       
+                        //copy temp Rect
+                        tempECO_Rect.Rect = _collection[i].Rect;
+                       
+                        //copy info to the rect
+                        tempECO_Rect.Name = _replaceName;
+                                  
+                        //insert a new one
+                        _listBox.Items.Insert(i, tempECO_Rect);
+                        _collection.Insert(i, tempECO_Rect);
+
+                        //remove old one
+                        _listBox.Items.RemoveAt(i+1);
+                        _collection.RemoveAt(i+1);
+                    }
+               }
+        }
+    
+
+      
+      
 
        
      

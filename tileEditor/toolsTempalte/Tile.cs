@@ -78,6 +78,8 @@ namespace toolsTempalte
             get { return m_Rect; }
             set { m_Rect = value; }
         }
+
+      
         string name ;
 
         public string Name
