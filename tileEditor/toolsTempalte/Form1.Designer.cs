@@ -777,7 +777,7 @@
             // comboBoxCollision
             // 
             this.comboBoxCollision.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxCollision.Font = new System.Drawing.Font("Broadway", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.comboBoxCollision.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxCollision.FormattingEnabled = true;
             this.comboBoxCollision.Location = new System.Drawing.Point(11, 24);
             this.comboBoxCollision.Name = "comboBoxCollision";
@@ -1028,7 +1028,7 @@
             // comboBoxEvent
             // 
             this.comboBoxEvent.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxEvent.Font = new System.Drawing.Font("Broadway", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.comboBoxEvent.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxEvent.FormattingEnabled = true;
             this.comboBoxEvent.Location = new System.Drawing.Point(6, 21);
             this.comboBoxEvent.Name = "comboBoxEvent";
@@ -1101,7 +1101,7 @@
             // comboBoxObject
             // 
             this.comboBoxObject.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxObject.Font = new System.Drawing.Font("Broadway", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.comboBoxObject.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxObject.FormattingEnabled = true;
             this.comboBoxObject.Location = new System.Drawing.Point(12, 21);
             this.comboBoxObject.Name = "comboBoxObject";

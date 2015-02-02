@@ -13,8 +13,8 @@ using System.Xml;
 namespace toolsTempalte
 {
     public enum enumCollision{ water, wall,None }
-    public enum enumEvent { spawn, coop, Devil, Angel, Troll, Gulu, God, None }
-    public enum enumObject { player1, player2, Devil, Angel, Troll, Gulu, God, None }
+    public enum enumEvent { spawn, coop, None }
+    public enum enumObject { player1, player2, None }
  
     struct tileCollection
     {
@@ -145,6 +145,9 @@ namespace toolsTempalte
         }
         private void initializeNumber()
         {
+            //clear all
+            clearAllDataStructure();
+
              mapX = 50;
              mapY = 50;
 
@@ -261,14 +264,12 @@ namespace toolsTempalte
                         //safe check
                         if (map[x, y].TabIndex < m_tileMap.Count)
                         TM.Draw(map[x, y].TabIndex, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
-                      //  TM.Draw(TextureID, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
-
+                      
                     }
                 }
             }
 
             drawBox();
-            
 
             //render the preview and mouse
             if (tempTabIndex != -1)
@@ -366,12 +367,15 @@ namespace toolsTempalte
             }
         }
         private void drawCollisionBox()
-        {  //draw Collision Box
+        { 
+            //draw Collision Box
             Point offset = panel1.AutoScrollPosition;
             for (int i = 0; i < m_collisionRect.Count; i++)
             {
                 int locationX = m_collisionRect[i].Rect.Left + offset.X;
                 int locationY = m_collisionRect[i].Rect.Top + offset.Y;
+
+                D3D.DrawText(m_collisionRect[i].Name, locationX, locationY, Color.FromArgb(255, 255, 0, 0));
 
                 D3D.DrawHollowRect(new Rectangle(locationX, locationY,
                     m_collisionRect[i].Rect.Width, m_collisionRect[i].Rect.Height), Color.FromArgb(255, 255, 0, 0), 3);
@@ -1996,6 +2000,9 @@ namespace toolsTempalte
                     XElement collision = new XElement("collision");
                     xRoot.Add(collision);
 
+                    XAttribute collision_name = new XAttribute("collision_name", m_collisionRect[i].Name);
+                    collision.Add(collision_name);
+
                     XAttribute collision_left = new XAttribute("collision_left", m_collisionRect[i].Rect.Left);
                     collision.Add(collision_left);
 
@@ -2044,10 +2051,39 @@ namespace toolsTempalte
                     objectRect.Add(object_left);
 
                     XAttribute object_top = new XAttribute("object_top", m_objectPt[i].Rect.Top);
-                    objectRect.Add(object_top);
-                 
+                    objectRect.Add(object_top);               
                 }
-               
+
+                //collision name
+                foreach (var item in Enum.GetValues(typeof(enumCollision)))
+                {
+                    XElement HostName = new XElement("collision_name");
+                    xRoot.Add(HostName);
+
+                    XAttribute subName = new XAttribute("SubName",item.ToString());
+                    HostName.Add(subName);                         
+                }
+
+                //event name
+                foreach (var item in Enum.GetValues(typeof(enumEvent)))
+                {
+                    XElement HostName = new XElement("event_name");
+                    xRoot.Add(HostName);
+
+                    XAttribute subName = new XAttribute("SubName", item.ToString());
+                    HostName.Add(subName);
+                }
+
+                //object name
+                foreach (var item in Enum.GetValues(typeof(enumObject)))
+                {
+                    XElement HostName = new XElement("object_name");
+                    xRoot.Add(HostName);
+
+                    XAttribute subName = new XAttribute("SubName", item.ToString());
+                    HostName.Add(subName);
+                }
+
                 //tile map
                 //object left,top,name
                 for (int y = 0; y < mapY; y++)
@@ -2063,8 +2099,23 @@ namespace toolsTempalte
                         //calculate total grid
                         int gridTotal = indexX + indexY * tileSetX + tileSetX * tileSetY * layerIndex;
 
-                            XAttribute tileMap_index = new XAttribute("grid", gridTotal);
-                            tileMap.Add(tileMap_index);
+                        XAttribute tileMap_grid = new XAttribute("grid", gridTotal);
+                        tileMap.Add(tileMap_grid);
+
+                        XAttribute tileMap_indexY = new XAttribute("indexY", indexY);
+                        tileMap.Add(tileMap_indexY);
+
+                        XAttribute tileMap_indexX = new XAttribute("indexX", indexX);
+                        tileMap.Add(tileMap_indexX);
+
+                        XAttribute tileMap_subY = new XAttribute("y", y);
+                        tileMap.Add(tileMap_subY);
+
+                        XAttribute tileMap_subX = new XAttribute("x", x);
+                        tileMap.Add(tileMap_subX);
+
+                        XAttribute tileMap_layerIndex = new XAttribute("layerIndex", layerIndex);
+                        tileMap.Add(tileMap_layerIndex);                  
                         }
                      }              
             
@@ -2104,9 +2155,8 @@ namespace toolsTempalte
                 makeNewFile();
 
                 //clear all tab first
-                tabAsset.TabPages.Clear();
-                m_tileMap.Clear();
-
+                clearAllDataStructure();
+             
                 IEnumerable<XElement> xPaths = xRoot.Elements();
 
                
@@ -2139,9 +2189,12 @@ namespace toolsTempalte
                         xCollisioin = xPath.Attribute("collision_size_h");
                         int collision_size_h = Convert.ToInt32(xCollisioin.Value);
 
+                        xCollisioin = xPath.Attribute("collision_name");
+                        string collision_name = xCollisioin.Value;
+
                         Size tempSize = new Size(collision_size_w, collision_size_h);
                         Event_Collision_Object_Rect tempCollision =
-                            new Event_Collision_Object_Rect(collision_left, collision_top, tempSize, "default");
+                            new Event_Collision_Object_Rect(collision_left, collision_top, tempSize, collision_name);
 
                         m_collisionRect.Add(tempCollision);
                         listBoxCollision.Items.Add(tempCollision);
@@ -2198,7 +2251,37 @@ namespace toolsTempalte
                         m_objectPt.Add(tempObject);
                         listBoxObject.Items.Add(tempObject);
                     }
-                             
+
+                    //collision_name
+                    if (xPath.Name.ToString() == "collision_name")
+                    {
+                        //get from subName
+                        XAttribute xEvent = xPath.Attribute("SubName");
+
+                        string SubName = xEvent.Value;
+                        comboBoxCollision.Items.Add(SubName);              
+                    }
+
+                    //event_name
+                    if (xPath.Name.ToString() == "event_name")
+                    {
+                        //get from subName
+                        XAttribute xEvent = xPath.Attribute("SubName");
+                        
+                        string SubName = xEvent.Value;
+                        comboBoxEvent.Items.Add(SubName);
+                    }
+
+                    //object_name
+                    if (xPath.Name.ToString() == "object_name")
+                    {
+                        //get from subName
+                        XAttribute xEvent = xPath.Attribute("SubName");
+                        
+                        string SubName = xEvent.Value;
+                        comboBoxObject.Items.Add(SubName);
+                    }
+
                     //tile
                     if (xPath.Name.ToString() == "tile")
                     {
@@ -2227,8 +2310,6 @@ namespace toolsTempalte
                         map[mapIndexX, mapIndexY].Y = indexY;
 
                         totalIndex++;
-                     
-
                     }
 
                 }
@@ -2236,6 +2317,15 @@ namespace toolsTempalte
             }
         }
 
+        private void    clearAllDataStructure()
+        {
+            tabAsset.TabPages.Clear();
+            m_tileMap.Clear();
+            comboBoxCollision.Items.Clear();
+            comboBoxEvent.Items.Clear();
+            comboBoxObject.Items.Clear();
+        }
+                
         private void panel3_MouseMove(object sender, MouseEventArgs e)
         {
             toolStripLabel1.Text = e.Location.ToString() ;
