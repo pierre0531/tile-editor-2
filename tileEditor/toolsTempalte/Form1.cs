@@ -18,6 +18,8 @@ namespace toolsTempalte
  
     struct tileCollection
     {
+        
+
         tileMap m_tileMap;
 
         public tileMap TileMap
@@ -145,8 +147,9 @@ namespace toolsTempalte
         }
         private void initializeNumber()
         {
-            //clear all
-            clearAllDataStructure();
+
+            m_bucketColletion.MouseX = -1;
+            m_bucketColletion.MouseY = -1;
 
              mapX = 50;
              mapY = 50;
@@ -157,12 +160,17 @@ namespace toolsTempalte
              tileWidth = 32;
              tileHeigth = 32;
 
+             m_screenSizeW = 800;
+             m_screenSizeH = 600;
+
             //draw all the layer default
              MapCheckBox.Checked = true;
              EventCheckBox.Checked = true;
              ObjectCheckBox.Checked = true;
              CollisionCheckBox.Checked = true;
              checkBoxGrid.Checked = true;
+             checkBoxBlockGrid.Checked = true;
+             checkBoxWeight.Checked = true;
 
              m_bucketColletion.MouseX = -1;
              m_bucketColletion.MouseY = -1;
@@ -171,10 +179,11 @@ namespace toolsTempalte
              initMap(ref mapFullTile, mapX, mapY);
              setMode(paintMode.stamp);
              panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
-     
-             m_screenSizeW = 800;
-             m_screenSizeH = 600;
 
+           
+             //clear all
+             clearAllDataStructure();
+     
             //add combo to object
              addCombox(comboBoxObject, default(enumObject));
              addCombox(comboBoxEvent, default(enumEvent));
@@ -207,6 +216,8 @@ namespace toolsTempalte
                     _map[x, y].CheckForBucket = false;
                     _map[x, y].PreviewOnMap = false;
                     _map[x, y].TabIndex = -1;
+                    _map[x, y].Block = false;
+                    _map[x, y].Weight = 1;
                 }
             }
         }
@@ -218,17 +229,21 @@ namespace toolsTempalte
             Render1();
 
             int TextureCount = m_tileMap.Count;
+
             //no tile map, so dont need to render 2 and render3
             if (TextureCount>0)
-       //     if (TextureID != -1)
             {
                 Render2();
-                Render3(); 
+                Render3();
+            }
+            else if (TextureCount == 0)
+            {
+                D3D.Clear(panel3, Color.White);
             }
         }
         public void Render1()
         {
-            D3D.Present();
+           // D3D.Present();
             D3D.Clear(panel1, Color.White);
             D3D.DeviceBegin();
             D3D.SpriteBegin();
@@ -236,39 +251,10 @@ namespace toolsTempalte
             //get tabIndex
             int tempTabIndex = tabAsset.SelectedIndex;
 
-            //using tabIndex to get which tab is selected
-            //int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
+            //for render the map section
+            drawMap();
 
-            Point offset = panel1.AutoScrollPosition;
-
-            //safe check
-            if(MapCheckBox.Checked == true)
-                if (tempTabIndex != -1)
-            {
-                //for render the map section
-                Rectangle src = new Rectangle();
-                for (int x = 0; x < mapX; x++)
-                {
-                    for (int y = 0; y < mapY; y++)
-                    {
-
-                        if (map[x, y].TabIndex == -1)
-                            continue;
-
-                        src.X = map[x, y].X * tileWidth;
-                        src.Y = map[x, y].Y * tileHeigth;
-                        src.Size = new Size(tileWidth, tileHeigth);
-                        int locationX = x * tileWidth + offset.X;
-                        int locationY = y * tileWidth + offset.Y;
-
-                        //safe check
-                        if (map[x, y].TabIndex < m_tileMap.Count)
-                        TM.Draw(map[x, y].TabIndex, x * tileWidth + offset.X, y * tileHeigth + offset.Y, 1, 1, src);
-                      
-                    }
-                }
-            }
-
+            //draw event, object, collision box
             drawBox();
 
             //render the preview and mouse
@@ -282,24 +268,17 @@ namespace toolsTempalte
                         break;
                     case paintMode.stamp:
                         renderPreviewStamp();
-                        break;
-                 
+                        break;               
                     default:
                         break;
                 }
             }
 
-            //Draw the hollow Rect 
-        
-            if (checkBoxGrid.Checked)
-                for (int x = 0; x < mapX; x++)
-                {
-                    for (int y = 0; y < mapY; y++)
-                    {
-                        D3D.DrawHollowRect(new Rectangle(x * tileWidth + offset.X, y * tileHeigth + offset.Y, tileWidth, tileHeigth),
-                            Color.FromArgb(255, 0, 0, 0), 1);
-                    }
-                }
+            //Draw the hollow Rect  
+            drawHollowGrid();
+
+            //draw the weight grid
+            drawWeightGrid();
 
             switch (m_mode)
             {
@@ -317,8 +296,84 @@ namespace toolsTempalte
             D3D.Present();
         }
 
+        //render the map
+        private void drawMap()
+        {
+            //get tabIndex
+            int tempTabIndex = tabAsset.SelectedIndex;
+            Point offset = panel1.AutoScrollPosition;
+
+            //safe check
+            if (MapCheckBox.Checked == true)
+                if (tempTabIndex != -1)
+                {
+
+                    Rectangle src = new Rectangle();
+                    for (int x = 0; x < mapX; x++)
+                    {
+                        for (int y = 0; y < mapY; y++)
+                        {
+
+                            if (map[x, y].TabIndex == -1)
+                                continue;
+
+                            src.X = map[x, y].X * tileWidth;
+                            src.Y = map[x, y].Y * tileHeigth;
+                            src.Size = new Size(tileWidth, tileHeigth);
+                            int locationX = x * tileWidth + offset.X;
+                            int locationY = y * tileHeigth + offset.Y;
+
+                            //safe check
+                            if (map[x, y].TabIndex < m_tileMap.Count)
+                                TM.Draw(map[x, y].TabIndex, locationX, locationY, 1, 1, src);
+                        }
+                    }
+                }
+
+        }
+
+
+        //Draw the drawWeightGrid 
+        private void drawWeightGrid()
+        {
+            Point offset = panel1.AutoScrollPosition;              
+            if (checkBoxWeight.Checked)
+                for (int x = 0; x < mapX; x++)
+                {
+                    for (int y = 0; y < mapY; y++)
+                    {
+                        int locationX = x * tileWidth + offset.X;
+                        int locationY = y * tileHeigth + offset.Y;
+
+                        //draw the weight
+                        D3D.DrawText(map[x, y].Weight.ToString(), locationX, locationY, Color.FromArgb(255, 255, 0, 0));
+                    }
+                }
+        }
+
+        //Draw the hollow Rect  
+        private void drawHollowGrid()
+        {
+            Point offset = panel1.AutoScrollPosition;
+                 
+            if (checkBoxGrid.Checked)
+                for (int x = 0; x < mapX; x++)
+                {
+                    for (int y = 0; y < mapY; y++)
+                    {
+                        int locationX = x * tileWidth + offset.X;
+                        int locationY = y * tileHeigth + offset.Y;
+
+                        D3D.DrawHollowRect(new Rectangle(locationX, locationY, tileWidth, tileHeigth),
+                            Color.FromArgb(255, 0, 0, 0), 1);
+                    }
+                }
+        }
         private void drawBox()
         {
+            if (checkBoxBlockGrid.Checked == true)
+                drawCheckBoxBlockGrid();
+
             if (EventCheckBox.Checked == true)
             drawEventBox();
 
@@ -329,6 +384,27 @@ namespace toolsTempalte
             drawObjectBox();
         }
 
+        //draw grid based block
+        private void drawCheckBoxBlockGrid()
+        {
+            //draw Collision Box
+            Point offset = panel1.AutoScrollPosition;
+
+            for (int x = 0; x < mapX; x++)
+            {
+                for (int y = 0; y < mapY; y++)
+                {
+                    if (map[x, y].Block == false)
+                        continue;
+
+                    int locationX = x * tileWidth + offset.X;
+                    int locationY = y * tileHeigth + offset.Y;
+
+                    //draw the gray point
+                    D3D.DrawRect(new Rectangle(locationX, locationY, tileWidth, tileHeigth), Color.FromArgb(128, 128, 128, 128));
+                }
+            }  
+        }
        
          private void drawObjectBox()
         { 
@@ -379,11 +455,12 @@ namespace toolsTempalte
 
                 D3D.DrawHollowRect(new Rectangle(locationX, locationY,
                     m_collisionRect[i].Rect.Width, m_collisionRect[i].Rect.Height), Color.FromArgb(255, 255, 0, 0), 3);
-
+                
+                //draw X
                 D3D.DrawLine(locationX, locationY,
                     m_collisionRect[i].Rect.Right + offset.X, m_collisionRect[i].Rect.Bottom + offset.Y,
                     Color.FromArgb(255, 255, 0, 0), 3);
-
+                //draw X
                 D3D.DrawLine(m_collisionRect[i].Rect.Right + offset.X, locationY,
                       m_collisionRect[i].Rect.Left + offset.X, m_collisionRect[i].Rect.Bottom + offset.Y,
                       Color.FromArgb(255, 255, 0, 0), 3);
@@ -392,6 +469,7 @@ namespace toolsTempalte
                 if (i == listBoxCollision.SelectedIndex && collisionButton.Checked)
                     D3D.DrawRect(new Rectangle(locationX, locationY,
                     m_collisionRect[i].Rect.Width, m_collisionRect[i].Rect.Height), Color.FromArgb(128, 255, 0, 0));
+          
             } 
         }
         //preview collision Zone Rect
@@ -493,18 +571,16 @@ namespace toolsTempalte
             int tempTextureID = m_tileMap[tempTabIndex].TileMap.TextureID;
 
             Panel panelTile = m_tileMap[tempTabIndex].Panel;
- 
-        
+
+            D3D.Resize(panelTile, panelTile.ClientSize.Width, panelTile.ClientSize.Height, false);
            // D3D.Clear(panel2, Color.WhiteSmoke);
             D3D.Clear(panelTile, Color.WhiteSmoke);
 
             D3D.DeviceBegin();
             D3D.SpriteBegin();
-       //     panel2 = panelTile;
+    
             TM.Draw(tempTextureID, panelTile.AutoScrollPosition.X, panelTile.AutoScrollPosition.Y);
-           // TM.Draw(tempTextureID, panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
-  
-
+         
             //draw grid
             Point offset = panelTile.AutoScrollPosition;
             for (int x = 0; x < tileSetX; x++)
@@ -690,36 +766,10 @@ namespace toolsTempalte
             Render2();
         }
 
-        private void addTileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
+    
 
-        }
-
-        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-
-        }
-
-        private void panel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void panel1_Scroll(object sender, ScrollEventArgs e)
-        {
-            Render1();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
+       
+    
         //safe check whether map out of range
         bool outOfRangeTile(MouseEventArgs e)
         {
@@ -756,9 +806,59 @@ namespace toolsTempalte
 
             return false;
         }
+        private void panel1_MouseMove(object sender, MouseEventArgs e)
+        {
 
-        //Single click to know where is the map mouse location
-        private void panel1_MouseClick(object sender, MouseEventArgs e)
+            if (outOfRangeMap(e))
+                return;
+
+            //Caculate where is the mouse
+            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
+            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
+
+            //select tile at map
+            if (e.Button == MouseButtons.Right)
+            {
+            //    stampSelectedTile.X = x;
+              //  stampSelectedTile.Y = y;
+                return;
+            }
+
+            //debug usage
+            toolStripLabel1.Text = e.Location.ToString() + x.ToString() + y.ToString();
+
+            switch (m_mode)
+            {
+                case paintMode.full:
+                    fullMouseMove(x, y, e);
+                    break;
+                case paintMode.stamp:
+                    stampMouseMove(x, y, e);
+                    break;
+                case paintMode.collision:
+                    makeCollisionRect(e.Location.X, e.Location.Y);
+                    break;
+                case paintMode.eventTrigger:
+                    makeCollisionRect(e.Location.X, e.Location.Y);
+                    break;
+                case paintMode.Object:
+                    break;
+                default:
+                    break;
+            }
+
+        }
+        //for precise mouse location
+        private void panel1_Resize(object sender, EventArgs e)
+        {
+            D3D.Resize(panel1, panel1.ClientSize.Width, panel1.ClientSize.Height, true);
+        }
+        private void panel1_MouseUp(object sender, MouseEventArgs e)
+        {
+            //calculate which selection area
+          //  calculateRect();
+        }
+        private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
             if (outOfRangeMap(e))
                 return;
@@ -767,17 +867,53 @@ namespace toolsTempalte
             int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
             int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
 
+            //select tile on map by using right click
+            if (e.Button == MouseButtons.Right)
+            {
+           //     selectedTile.X = x;
+            //    selectedTile.Y = y;
+                selectedTile.X = map[x, y].X;
+                selectedTile.Y = map[x, y].Y;
+               // selectedTile.TabIndex = map[x, y].TabIndex;
+                stampSelectedTile.X = map[x, y].X;
+                stampSelectedTile.Y = map[x, y].Y;
+              //  stampSelectedTile.TabIndex = map[x, y].TabIndex;
+                tabAsset.SelectedIndex =  map[x, y].TabIndex;
+                return;
+            }
+
+            if (m_mode == paintMode.collision)
+                storageCollisionRect(e.Location.X, e.Location.Y);
+            else if (m_mode == paintMode.eventTrigger)
+                storageCollisionRect(e.Location.X, e.Location.Y);
+        }
+
+        private void panel1_Scroll(object sender, ScrollEventArgs e)
+        {
+            Render1();
+        }
+
+
+        //Single click to know where is the map mouse location
+        private void panel1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (outOfRangeMap(e) || e.Button == MouseButtons.Right)
+                return;
+
+            //Caculate where is the mouse
+            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
+            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
+      
 
             if (m_mode == paintMode.stamp)
                 storageTile(x, y);
             else if (m_mode == paintMode.full)
                 storageFullTile();
             else if (m_mode == paintMode.Object)
-            { 
                 storageCollisionRect(e.Location.X, e.Location.Y);
-             //   calculateRect();
-            }
-               
+
+            //calculate to data structure
+            calculateRect();
         }
 
      
@@ -800,6 +936,7 @@ namespace toolsTempalte
                         _target[x, y].X = _src[x, y].X;
                         _target[x, y].Y = _src[x, y].Y;
                         _target[x, y].TabIndex = _src[x, y].TabIndex;
+                        _target[x, y].Weight = _src[x, y].Weight;
                     }
                         //not total copy for preview
                     else
@@ -809,6 +946,7 @@ namespace toolsTempalte
                             _target[x, y].X = _src[x, y].X;
                             _target[x, y].Y = _src[x, y].Y;
                             _target[x, y].TabIndex = _src[x, y].TabIndex;
+                            _target[x, y].Weight = _src[x, y].Weight;
                         }
                     }
 
@@ -833,6 +971,7 @@ namespace toolsTempalte
             int checkTileX = mapFullTile[clickX, clickY].X;
             int checkTileY = mapFullTile[clickX, clickY].Y;
 
+            counter = 0;
             //recursive from the mouse location
             recursiveTile(clickX, clickY, checkTileX, checkTileY);         
         }
@@ -853,77 +992,51 @@ namespace toolsTempalte
         }
         private void recursiveTile(int _startX, int _startY, int _checkTileX, int _checkTileY)
         {
+            //max recursive safe check
+            if (counter >= 2500)
+                return;
+
             int tempX,tempY ;
 
             //center
             tempX = _startX;
-            tempY = _startY;
-
-            limitRecursiveXY(ref tempX, ref tempY);
-
-            ////only chech while the tile is not check
-            if (mapFullTile[tempX, tempY].CheckForBucket != true)
-            ////error check for not out of range
-            //if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
+            tempY = _startY;        
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
 
             //top
             tempX = _startX;
-            tempY = _startY - 1;
-            limitRecursiveXY(ref tempX, ref tempY);
-            ////only chech while the tile is not check
-             if (mapFullTile[tempX, tempY].CheckForBucket != true)
-            //    //error check for not out of range
-            // if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
-             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
+            tempY = _startY - 1;        
+            recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
     
-
             //down
             tempX = _startX;
-            tempY = _startY + 1;
-            limitRecursiveXY(ref tempX, ref tempY);
-            ////only chech while the tile is not check
-            if (mapFullTile[tempX, tempY].CheckForBucket != true)
-            //    //error check for not out of range
-            //    if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
+            tempY = _startY + 1;  
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
        
-
             //left
             tempX = _startX - 1;
             tempY = _startY ;
-            limitRecursiveXY(ref tempX, ref tempY);
-            ////only chech while the tile is not check
-            if (mapFullTile[tempX, tempY].CheckForBucket != true)
-            //    //error check for not out of range
-            //    if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
        
             //right
             tempX = _startX + 1;
             tempY = _startY ;
-            limitRecursiveXY(ref tempX, ref tempY);
-            ////only chech while the tile is not check
-            if (mapFullTile[tempX, tempY].CheckForBucket != true)
-            //    //error check for not out of range
-            //    if (tempX >= mapX && tempY >= mapY && tempX < 0 && tempY < 0)
             recursiveCheck(tempX, tempY, _checkTileX, _checkTileY);
-   
         }
 
         private void recursiveCheck(int tempX, int tempY, int _checkTileX, int _checkTileY)
         {
             //counter++;
 
-            //limitRecursiveXY(ref tempX, ref tempY);
+            limitRecursiveXY(ref tempX, ref tempY);
 
             ////only chech while the tile is not check
-            //if (mapFullTile[tempX, tempY].CheckForBucket == true)
-            //    return;
+           if (mapFullTile[tempX, tempY].CheckForBucket == true)
+                return;
 
             ////error check for not out of range
-            //if (tempX >= mapX || tempY >= mapY || tempX <0 || tempY< 0)
-            //    return;
+            if (tempX >= mapX || tempY >= mapY || tempX <0 || tempY< 0)
+                return;
 
             //if the same, storage selected tile to the map
             if (mapFullTile[tempX, tempY].X == _checkTileX && mapFullTile[tempX, tempY].Y == _checkTileY)
@@ -998,39 +1111,7 @@ namespace toolsTempalte
 
           
         }
-        private void panel1_MouseMove(object sender, MouseEventArgs e)
-        {
-           
-            if (outOfRangeMap(e))
-                return;
-
-            //Caculate where is the mouse
-            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
-            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
-
-            toolStripLabel1.Text = e.Location.ToString()+x.ToString()+y.ToString();
-
-            switch (m_mode)
-            {
-                case paintMode.full:
-                    fullMouseMove(x, y, e);
-                    break;
-                case paintMode.stamp:
-                    stampMouseMove(x, y,e);
-                    break;
-                case paintMode.collision:
-                    makeCollisionRect(e.Location.X, e.Location.Y);
-                    break;
-                case paintMode.eventTrigger:
-                    makeCollisionRect(e.Location.X, e.Location.Y);
-                    break;
-                case paintMode.Object:
-                    break;
-                default:
-                    break;
-            }
-         
-        }
+      
 
 
      
@@ -1186,7 +1267,7 @@ namespace toolsTempalte
         {
             if (outOfRangeTile(e))
                 return;
-
+          
             //get tabIndex
             int tempTabIndex = tabAsset.SelectedIndex;
 
@@ -1275,6 +1356,8 @@ namespace toolsTempalte
                         tempTile[x, y].X = map[x, y].X;
                         tempTile[x, y].Y = map[x, y].Y;
                         tempTile[x, y].TabIndex = map[x, y].TabIndex;
+                        tempTile[x, y].Block = map[x, y].Block;
+                        tempTile[x, y].Weight = map[x, y].Weight;
                     }
                 }
 
@@ -1288,6 +1371,8 @@ namespace toolsTempalte
                     map[x, y].X = tempTile[x, y].X;
                     map[x, y].Y = tempTile[x, y].Y;
                     map[x, y].TabIndex = tempTile[x, y].TabIndex;
+                    map[x, y].Block = tempTile[x, y].Block;
+                    map[x, y].Weight = tempTile[x, y].Weight;
                 }
         }
 
@@ -1336,7 +1421,7 @@ namespace toolsTempalte
             tempPanel.AutoScrollMinSize = new Size(TM.GetTextureWidth(tempListMap.TextureID), TM.GetTextureHeight(tempListMap.TextureID));
             tempPanel.BorderStyle = BorderStyle.FixedSingle;
             tempPanel.Dock = DockStyle.Fill;
-            tempPanel.BackColor = Color.Transparent;
+            tempPanel.BackColor = Color.Transparent;     
 
             //setting the new tab
             tempPanel.Parent = tempTabPage;
@@ -1354,6 +1439,7 @@ namespace toolsTempalte
             m_tileMap.Add(temptileCollection);        
         }
 
+        //import tile set
         private void openFile()
         {  //Create an open file
             OpenFileDialog open = new OpenFileDialog();
@@ -1364,7 +1450,7 @@ namespace toolsTempalte
             if (DialogResult.OK == open.ShowDialog())
             {
                 //Open a stream for reading
-                tileMap tempListMap = new tileMap();
+                tileMap tempListMap = new tileMap();              
                 tempListMap.TextureID = TM.LoadTexture(open.FileName);
                 tempListMap.PathName = open.SafeFileName;           
            
@@ -1378,6 +1464,8 @@ namespace toolsTempalte
                  tempPanel.BorderStyle = BorderStyle.FixedSingle;
                  tempPanel.Dock = DockStyle.Fill;
                  tempPanel.BackColor = Color.Transparent;
+
+                 //D3D.Resize(tempPanel, tempPanel.ClientSize.Width, tempPanel.ClientSize.Height, true);
 
                  //setting the new tab
                  tempPanel.Parent = tempTabPage;
@@ -1402,21 +1490,7 @@ namespace toolsTempalte
             tabEditLayer.SelectedTab = tabPageCollision;
         }
 
-        private void panel1_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (outOfRangeMap(e))
-                return;
-
-            //Caculate where is the mouse
-            int x = (e.Location.X - panel1.AutoScrollPosition.X) / tileWidth; //0~5(default)
-            int y = (e.Location.Y - panel1.AutoScrollPosition.Y) / tileHeigth;//0~5(default)
-
-
-            if (m_mode == paintMode.collision)
-                storageCollisionRect(e.Location.X, e.Location.Y);
-            else if (m_mode == paintMode.eventTrigger)
-                storageCollisionRect(e.Location.X, e.Location.Y);
-        }
+      
 
        
 
@@ -1432,12 +1506,7 @@ namespace toolsTempalte
             m_tempRect[3] = _y;
         }
 
-        private void panel1_MouseUp(object sender, MouseEventArgs e)
-        {
-            //calculate which selection area
-            calculateRect();
-        }
-
+      
         private void calculateRect()
         {
             //it can show right now
@@ -1485,13 +1554,13 @@ namespace toolsTempalte
 
            Event_Collision_Object_Rect tempECORect = new Event_Collision_Object_Rect();
            tempECORect.Rect = tempRect;
-       
+        
            switch (m_mode)
            {         
                case paintMode.collision:
                    //add to data structure    
                    addToDataStructure(ref tempECORect);
-
+                   addGridBlock(ref tempRect,comboBoxCollision.SelectedIndex);
                    break;
                case paintMode.eventTrigger:
                    //add to data structure    
@@ -1509,6 +1578,93 @@ namespace toolsTempalte
            }
          
         }
+
+        private void addGridBlock(ref Rectangle _rectangle, int _comboIndex)
+        {
+           
+            //get the map X , Y (0~5)
+            int left = (_rectangle.Left ) / tileWidth;
+            int top = (_rectangle.Top )  / tileHeigth;
+            int right = (_rectangle.Right ) / tileWidth;
+            int bottom = (_rectangle.Bottom ) / tileHeigth;
+
+            if (left <= 0)
+                left = 0;
+
+            if (top <= 0)
+                top = 0;
+
+            if (right >= mapX)
+                right = mapX - 1;
+
+            if (bottom >= mapY)
+                bottom = mapY - 1;
+       
+            for (int x = left; x <= right; x++)
+            {
+                for (int y = top; y <= bottom; y++)
+                {
+                    //make the bool to true
+                    map[x, y].Block = true;
+
+                    string grabString = comboBoxCollision.Items[_comboIndex].ToString();
+                    int _position = grabString.IndexOf('_');
+
+                    //safe check
+                    if (_position != -1)
+                    {
+                        string weight_string = grabString.Substring(_position+1);
+                        int weight_int = Int32.Parse(weight_string);
+                        map[x, y].Weight = weight_int; 
+                    }else
+                        map[x, y].Weight = 1;
+                 } 
+            }           
+        }
+
+        private void resetGridBlock()
+        {
+            for (int x = 0; x < mapX; x++)
+            {
+                for (int y = 0; y < mapY; y++)
+                {
+                    //reset false
+                    map[x, y].Block = false;
+                }
+            }
+
+             //get every collision data
+            for (int i = 0; i < m_collisionRect.Count; i++)
+            {
+                int left = m_collisionRect[i].Rect.Left / tileWidth;
+                int top = m_collisionRect[i].Rect.Top / tileHeigth;
+                int right = m_collisionRect[i].Rect.Right / tileWidth;
+                int bottom = m_collisionRect[i].Rect.Bottom / tileHeigth;
+
+                if (left <= 0)
+                    left = 0;
+
+                if (top <= 0)
+                    top = 0;
+
+                if (right >= mapX)
+                    right = mapX - 1;
+
+                if (bottom >= mapY)
+                    bottom = mapY - 1;
+
+                //get the map X , Y EX:(0~5)
+                for (int x = left; x <= right; x++)
+                {
+                    for (int y = top; y <= bottom; y++)
+                    {
+                        //make the bool to true
+                        map[x, y].Block = true;
+                    }
+                }
+            }       
+        }
+
         private void addToDataStructure(ref Event_Collision_Object_Rect _tempEventRect)
         {
             List<Event_Collision_Object_Rect> tempCollection = new List<Event_Collision_Object_Rect>();
@@ -1649,9 +1805,12 @@ namespace toolsTempalte
 
             //name here
             int comboIndex = tempComboBox.SelectedIndex;
-            if(comboIndex >=0)
-            tempECO_Rect.Name = tempComboBox.Items[comboIndex].ToString();
+            if (comboIndex >= 0)
+            {
+                tempECO_Rect.Name = tempComboBox.Items[comboIndex].ToString();
 
+            }
+            
             //temp Rect
             Rectangle tempRect = new Rectangle();
 
@@ -1765,8 +1924,17 @@ namespace toolsTempalte
             tempListBox.Items.RemoveAt(tempIndex);
             tempCollection.RemoveAt(tempIndex);
 
+            if (m_mode == paintMode.collision)
+            {
+                resetGridBlock();
+            }
             //re select new index
-            tempListBox.SelectedIndex = tempListBox.Items.Count - 1;
+            if (tempListBox.Items.Count > 0 && tempIndex < tempListBox.Items.Count)
+                tempListBox.SelectedIndex = tempIndex;
+            else if (tempListBox.Items.Count > 0 && tempIndex >= tempListBox.Items.Count)
+                tempListBox.SelectedIndex = tempListBox.Items.Count - 1;
+            else
+                tempListBox.SelectedIndex = -1;
         }
         //box collision//
         //***************************************************************************************//
@@ -1919,27 +2087,19 @@ namespace toolsTempalte
 
         private void newToolStripButton_Click(object sender, EventArgs e)
         {
-            initializeNumber();
+           initializeNumber();
             makeNewFile();
         }
 
         private void makeNewFile()
         {
-            m_bucketColletion.MouseX = -1;
-            m_bucketColletion.MouseY = -1;
-
+           
             initMap(ref map, mapX, mapY);
             initMap(ref mapFullTile, mapX, mapY);
 
             setMode(paintMode.stamp);
             panel1.AutoScrollMinSize = new Size(mapX * tileWidth, mapY * tileHeigth);
-            m_collisionRect.Clear();
-            m_eventRect.Clear();
-            m_objectPt.Clear();
-
-            listBoxCollision.Items.Clear();
-            listBoxEvent.Items.Clear();
-            listBoxObject.Items.Clear();
+            
         }
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -1984,6 +2144,8 @@ namespace toolsTempalte
                 XAttribute mapYgrid = new XAttribute("mapY", mapY);
                 xRoot.Add(mapYgrid);
 
+                XAttribute totalLine = new XAttribute("totalLine", m_collisionRect.Count + m_eventRect.Count + m_objectPt.Count+mapX*mapY);
+                xRoot.Add(totalLine);
                 //tile map path
                 for (int i = 0; i < m_tileMap.Count; i++)
                 {
@@ -2000,9 +2162,19 @@ namespace toolsTempalte
                     XElement collision = new XElement("collision");
                     xRoot.Add(collision);
 
-                    XAttribute collision_name = new XAttribute("collision_name", m_collisionRect[i].Name);
-                    collision.Add(collision_name);
-
+                    //safe check
+                    if (m_collisionRect[i].Name == null)
+                    {
+                        XAttribute collision_name = new XAttribute("collision_name","None");
+                        collision.Add(collision_name);
+                    }
+                    else
+                    {
+                        XAttribute collision_name = new XAttribute("collision_name", m_collisionRect[i].Name);
+                        collision.Add(collision_name);
+ 
+                    }
+                    
                     XAttribute collision_left = new XAttribute("collision_left", m_collisionRect[i].Rect.Left);
                     collision.Add(collision_left);
 
@@ -2022,8 +2194,17 @@ namespace toolsTempalte
                     XElement eventRect = new XElement("event");
                     xRoot.Add(eventRect);
 
-                    XAttribute event_name = new XAttribute("event_name", m_eventRect[i].Name);
-                    eventRect.Add(event_name);
+                     //safe check
+                    if (m_eventRect[i].Name == null)
+                    {
+                        XAttribute event_name = new XAttribute("event_name", "None");
+                        eventRect.Add(event_name);
+                    }
+                    else
+                    {
+                        XAttribute event_name = new XAttribute("event_name", m_eventRect[i].Name);
+                        eventRect.Add(event_name);
+                    }
 
                     XAttribute event_left = new XAttribute("event_left", m_eventRect[i].Rect.Left);
                     eventRect.Add(event_left);
@@ -2044,8 +2225,17 @@ namespace toolsTempalte
                     XElement objectRect = new XElement("object");
                     xRoot.Add(objectRect);
 
-                    XAttribute object_name = new XAttribute("object_name", m_objectPt[i].Name);
-                    objectRect.Add(object_name);
+                      //safe check
+                    if (m_objectPt[i].Name == null)
+                    {
+                        XAttribute object_name = new XAttribute("object_name", "None");
+                        objectRect.Add(object_name);
+                    }
+                    else
+                    {
+                        XAttribute object_name = new XAttribute("object_name", m_objectPt[i].Name);
+                        objectRect.Add(object_name);
+                    }
 
                     XAttribute object_left = new XAttribute("object_left", m_objectPt[i].Rect.Left);
                     objectRect.Add(object_left);
@@ -2053,9 +2243,9 @@ namespace toolsTempalte
                     XAttribute object_top = new XAttribute("object_top", m_objectPt[i].Rect.Top);
                     objectRect.Add(object_top);               
                 }
-
+                
                 //collision name
-                foreach (var item in Enum.GetValues(typeof(enumCollision)))
+                foreach (var item in comboBoxCollision.Items)
                 {
                     XElement HostName = new XElement("collision_name");
                     xRoot.Add(HostName);
@@ -2063,9 +2253,9 @@ namespace toolsTempalte
                     XAttribute subName = new XAttribute("SubName",item.ToString());
                     HostName.Add(subName);                         
                 }
-
+                
                 //event name
-                foreach (var item in Enum.GetValues(typeof(enumEvent)))
+                foreach (var item in comboBoxEvent.Items)
                 {
                     XElement HostName = new XElement("event_name");
                     xRoot.Add(HostName);
@@ -2074,8 +2264,9 @@ namespace toolsTempalte
                     HostName.Add(subName);
                 }
 
+                
                 //object name
-                foreach (var item in Enum.GetValues(typeof(enumObject)))
+                foreach (var item in comboBoxObject.Items)
                 {
                     XElement HostName = new XElement("object_name");
                     xRoot.Add(HostName);
@@ -2093,6 +2284,9 @@ namespace toolsTempalte
                         int indexX = map[x, y].X;
                         int indexY = map[x, y].Y;
                         int layerIndex = map[x, y].TabIndex;
+                        bool block = map[x, y].Block;
+                        int weight = map[x, y].Weight;
+
                         XElement tileMap = new XElement("tile");
                         xRoot.Add(tileMap);
                                 
@@ -2101,6 +2295,12 @@ namespace toolsTempalte
 
                         XAttribute tileMap_grid = new XAttribute("grid", gridTotal);
                         tileMap.Add(tileMap_grid);
+
+                        XAttribute tileMap_weight = new XAttribute("tileMap_weight", weight);
+                        tileMap.Add(tileMap_weight);
+
+                        XAttribute tileMap_block = new XAttribute("tileMap_block", block);
+                        tileMap.Add(tileMap_block);
 
                         XAttribute tileMap_indexY = new XAttribute("indexY", indexY);
                         tileMap.Add(tileMap_indexY);
@@ -2123,7 +2323,7 @@ namespace toolsTempalte
             }
         }
 
-        private void laodToolStripMenuItem_Click(object sender, EventArgs e)
+        private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
             dlg.Filter = "All Files|*.*|XML Files|*.xml";
@@ -2131,6 +2331,9 @@ namespace toolsTempalte
 
             if (DialogResult.OK == dlg.ShowDialog())
             {
+                //clear all tab first
+                clearAllDataStructure();
+
                 XElement xRoot = XElement.Load(dlg.FileName);
 
                 //mapX ,mapY, tileSetX,tileSetY,tileSizeW,tileSizwH
@@ -2153,10 +2356,7 @@ namespace toolsTempalte
                 tileSetY = Convert.ToInt32(m_tileSetY.Value);
 
                 makeNewFile();
-
-                //clear all tab first
-                clearAllDataStructure();
-             
+ 
                 IEnumerable<XElement> xPaths = xRoot.Elements();
 
                
@@ -2244,12 +2444,13 @@ namespace toolsTempalte
                         xEvent = xPath.Attribute("object_name");
                         string object_name = xEvent.Value;
 
-                        Size tempSize = new Size(1, 1);
+                        Size tempSize = new Size(20, 20);
                         Event_Collision_Object_Rect tempObject =
                             new Event_Collision_Object_Rect(object_left, object_top, tempSize, object_name);
 
                         m_objectPt.Add(tempObject);
                         listBoxObject.Items.Add(tempObject);
+
                     }
 
                     //collision_name
@@ -2259,7 +2460,8 @@ namespace toolsTempalte
                         XAttribute xEvent = xPath.Attribute("SubName");
 
                         string SubName = xEvent.Value;
-                        comboBoxCollision.Items.Add(SubName);              
+                        comboBoxCollision.Items.Add(SubName);
+                        comboBoxCollision.SelectedIndex = comboBoxCollision.Items.Count - 1;
                     }
 
                     //event_name
@@ -2270,6 +2472,7 @@ namespace toolsTempalte
                         
                         string SubName = xEvent.Value;
                         comboBoxEvent.Items.Add(SubName);
+                        comboBoxEvent.SelectedIndex = comboBoxEvent.Items.Count - 1;
                     }
 
                     //object_name
@@ -2280,16 +2483,46 @@ namespace toolsTempalte
                         
                         string SubName = xEvent.Value;
                         comboBoxObject.Items.Add(SubName);
+                        comboBoxObject.SelectedIndex = comboBoxObject.Items.Count - 1;
                     }
 
                     //tile
                     if (xPath.Name.ToString() == "tile")
                     {
                         XAttribute xEvent = xPath.Attribute("grid");
+                        XAttribute xEventBlock = xPath.Attribute("tileMap_block");
+                        XAttribute xEventWeight = xPath.Attribute("tileMap_weight");
+                        
+                        //declare 
+                        int index = new int();
+                        bool block = new bool();
+                        int weight = new int();
 
-                        //index
-                        int index = Convert.ToInt32(xEvent.Value);
+                        //index & safe check***********************
+                        if (xEvent != null)
+                            index = Convert.ToInt32(xEvent.Value);
+                        else
+                            index = 0;
 
+                        if (xEventBlock != null)
+                            block = Convert.ToBoolean(xEventBlock.Value);
+                        else
+                            block = false;
+
+                        if (xEventWeight != null)
+                            weight = Convert.ToInt32(xEventWeight.Value);
+                        else
+                            weight = 1;
+                        //index & safe check***********************
+
+                        int mapIndexX = totalIndex % mapX;
+                        int mapIndexY = totalIndex / mapX;
+                        totalIndex++;
+
+                        map[mapIndexX, mapIndexY].Block = block;
+                        map[mapIndexX, mapIndexY].Weight = weight;
+
+                        //if less than -1, do need to send data anymore
                         if (index <= -1)
                             continue;
 
@@ -2301,15 +2534,12 @@ namespace toolsTempalte
 
                         int indexX = index % tileSetX;
                         int indexY = index / tileSetX;
-
-
-                        int mapIndexX = totalIndex % mapX;
-                        int mapIndexY = totalIndex / mapX;
+                  
                         map[mapIndexX, mapIndexY].TabIndex = layer;
                         map[mapIndexX, mapIndexY].X = indexX;
                         map[mapIndexX, mapIndexY].Y = indexY;
-
-                        totalIndex++;
+                       
+                      
                     }
 
                 }
@@ -2319,11 +2549,26 @@ namespace toolsTempalte
 
         private void    clearAllDataStructure()
         {
+            //clean the texture
+            for (int i = 0; i < m_tileMap.Count; i++)
+                TM.UnloadTexture(i);
+
+
             tabAsset.TabPages.Clear();
+          
             m_tileMap.Clear();
+         
             comboBoxCollision.Items.Clear();
             comboBoxEvent.Items.Clear();
             comboBoxObject.Items.Clear();
+          
+            m_collisionRect.Clear();
+            m_eventRect.Clear();
+            m_objectPt.Clear();
+
+            listBoxCollision.Items.Clear();
+            listBoxEvent.Items.Clear();
+            listBoxObject.Items.Clear();
         }
                 
         private void panel3_MouseMove(object sender, MouseEventArgs e)
@@ -2374,7 +2619,7 @@ namespace toolsTempalte
                 tempComboBox.Items.RemoveAt(tempComboIndex);
 
                 //update name to none
-                UpdateNameHelper(ref tempCollection, ref tempListBox, compareName, "None");
+                UpdateNameHelper(ref tempCollection, ref tempListBox, compareName, "None", tempComboIndex);
             }
           
 
@@ -2456,7 +2701,6 @@ namespace toolsTempalte
             //use reference to get content
             switchHelper(ref tempCollection, ref tempListBox, ref tempComboBox, ref tempTextBox);
         
-
             if (tempComboBox.SelectedIndex == -1)
                 return;
 
@@ -2473,7 +2717,7 @@ namespace toolsTempalte
                 tempComboBox.Items.RemoveAt(tempComboIndex + 1);
 
                 //update new info
-               UpdateNameHelper(ref tempCollection, ref tempListBox, compareName, tempTextBox.Text);
+                UpdateNameHelper(ref tempCollection, ref tempListBox, compareName, tempTextBox.Text, tempComboIndex);
 
                 //clear
                 tempTextBox.Text = "";
@@ -2489,7 +2733,7 @@ namespace toolsTempalte
         }
 
         private void UpdateNameHelper(ref List<Event_Collision_Object_Rect> _collection, ref ListBox _listBox,
-            string _compareName,string _replaceName)
+            string _compareName,string _replaceName, int _comboIndex)
         {
             for (int i = 0; i < _collection.Count; i++)
                 {
@@ -2503,7 +2747,7 @@ namespace toolsTempalte
                        
                         //copy info to the rect
                         tempECO_Rect.Name = _replaceName;
-                                  
+                                            
                         //insert a new one
                         _listBox.Items.Insert(i, tempECO_Rect);
                         _collection.Insert(i, tempECO_Rect);
@@ -2511,10 +2755,29 @@ namespace toolsTempalte
                         //remove old one
                         _listBox.Items.RemoveAt(i+1);
                         _collection.RemoveAt(i+1);
+
+                        if (m_mode == paintMode.collision)
+                        {
+                            //update the weight
+                            Rectangle weightRect = new Rectangle();
+                            weightRect = _collection[i].Rect;
+                            addGridBlock(ref  weightRect, _comboIndex);
+ 
+                        }
                     }
                }
         }
-    
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            Render();
+        }
+
+        private void splitContainer3_Panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
 
       
       

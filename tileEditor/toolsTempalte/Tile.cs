@@ -60,9 +60,10 @@ namespace toolsTempalte
             m_Rect = new Rectangle(_left, _top, _size.Width, _size.Height);
             name = _name;
             size = _size;
+  
         }
-       
 
+      
         Size size;  
 
         public Size Size
@@ -98,6 +99,21 @@ namespace toolsTempalte
  
     public struct Tile
     {
+        int weight;
+
+        public int Weight
+        {
+            get { return weight; }
+            set { weight = value; }
+        }
+        bool block;
+
+        public bool Block
+        {
+            get { return block; }
+            set { block = value; }
+        }
+
         int tabIndex;
 
         public int TabIndex

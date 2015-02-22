@@ -50,14 +50,13 @@
             this.openToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.saveToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.ImportAsset = new System.Windows.Forms.ToolStripButton();
             this.buttonFull = new System.Windows.Forms.ToolStripButton();
             this.ButtonStamp = new System.Windows.Forms.ToolStripButton();
             this.collisionButton = new System.Windows.Forms.ToolStripButton();
             this.EventButton = new System.Windows.Forms.ToolStripButton();
             this.ObjectButton = new System.Windows.Forms.ToolStripButton();
             this.helpToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.label1 = new System.Windows.Forms.Label();
+            this.ImportAsset = new System.Windows.Forms.ToolStripButton();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.tabAsset = new System.Windows.Forms.TabControl();
@@ -65,6 +64,8 @@
             this.MapCheckBox = new System.Windows.Forms.CheckBox();
             this.CollisionCheckBox = new System.Windows.Forms.CheckBox();
             this.showLayerGroupBox = new System.Windows.Forms.GroupBox();
+            this.checkBoxWeight = new System.Windows.Forms.CheckBox();
+            this.checkBoxBlockGrid = new System.Windows.Forms.CheckBox();
             this.checkBoxGrid = new System.Windows.Forms.CheckBox();
             this.ObjectCheckBox = new System.Windows.Forms.CheckBox();
             this.EventCheckBox = new System.Windows.Forms.CheckBox();
@@ -131,9 +132,17 @@
             this.buttonObjectUpdate = new System.Windows.Forms.Button();
             this.numObject_left = new System.Windows.Forms.NumericUpDown();
             this.listBoxObject = new System.Windows.Forms.ListBox();
-            this.toolStrip2 = new System.Windows.Forms.ToolStrip();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.splitContainer5 = new System.Windows.Forms.SplitContainer();
+            this.button9 = new System.Windows.Forms.Button();
+            this.splitContainer4 = new System.Windows.Forms.SplitContainer();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.toolStrip2 = new System.Windows.Forms.ToolStrip();
+            this.panel2 = new System.Windows.Forms.Panel();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.showLayerGroupBox.SuspendLayout();
@@ -157,15 +166,36 @@
             this.groupBox5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numObject_top)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numObject_left)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
+            this.splitContainer3.Panel1.SuspendLayout();
+            this.splitContainer3.Panel2.SuspendLayout();
+            this.splitContainer3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer5)).BeginInit();
+            this.splitContainer5.Panel1.SuspendLayout();
+            this.splitContainer5.Panel2.SuspendLayout();
+            this.splitContainer5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).BeginInit();
+            this.splitContainer4.Panel1.SuspendLayout();
+            this.splitContainer4.Panel2.SuspendLayout();
+            this.splitContainer4.SuspendLayout();
             this.toolStrip2.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel3
             // 
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel3.Location = new System.Drawing.Point(921, 111);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(0, 0);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(383, 261);
+            this.panel3.Size = new System.Drawing.Size(390, 243);
             this.panel3.TabIndex = 2;
             this.panel3.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel3_MouseMove_1);
             // 
@@ -212,7 +242,7 @@
             this.laodToolStripMenuItem.Name = "laodToolStripMenuItem";
             this.laodToolStripMenuItem.Size = new System.Drawing.Size(111, 24);
             this.laodToolStripMenuItem.Text = "Load";
-            this.laodToolStripMenuItem.Click += new System.EventHandler(this.laodToolStripMenuItem_Click);
+            this.laodToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
@@ -289,19 +319,18 @@
             this.openToolStripButton,
             this.saveToolStripButton,
             this.toolStripSeparator1,
-            this.ImportAsset,
             this.buttonFull,
             this.ButtonStamp,
             this.collisionButton,
             this.EventButton,
             this.ObjectButton,
-            this.helpToolStripButton});
+            this.helpToolStripButton,
+            this.ImportAsset});
             this.toolStrip1.Location = new System.Drawing.Point(0, 28);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1742, 39);
             this.toolStrip1.TabIndex = 4;
             this.toolStrip1.Text = "toolStrip1";
-            this.toolStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.toolStrip1_ItemClicked);
             // 
             // newToolStripButton
             // 
@@ -321,7 +350,7 @@
             this.openToolStripButton.Name = "openToolStripButton";
             this.openToolStripButton.Size = new System.Drawing.Size(36, 36);
             this.openToolStripButton.Text = "&Open";
-            this.openToolStripButton.Click += new System.EventHandler(this.laodToolStripMenuItem_Click);
+            this.openToolStripButton.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // saveToolStripButton
             // 
@@ -337,16 +366,6 @@
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 39);
-            // 
-            // ImportAsset
-            // 
-            this.ImportAsset.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.ImportAsset.Image = ((System.Drawing.Image)(resources.GetObject("ImportAsset.Image")));
-            this.ImportAsset.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.ImportAsset.Name = "ImportAsset";
-            this.ImportAsset.Size = new System.Drawing.Size(36, 36);
-            this.ImportAsset.Text = "Import Tile Asset";
-            this.ImportAsset.Click += new System.EventHandler(this.ImportAsset_Click);
             // 
             // buttonFull
             // 
@@ -407,16 +426,15 @@
             this.helpToolStripButton.Size = new System.Drawing.Size(36, 36);
             this.helpToolStripButton.Text = "He&lp";
             // 
-            // label1
+            // ImportAsset
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(918, 90);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(85, 16);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "mini map";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
+            this.ImportAsset.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ImportAsset.Image = ((System.Drawing.Image)(resources.GetObject("ImportAsset.Image")));
+            this.ImportAsset.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ImportAsset.Name = "ImportAsset";
+            this.ImportAsset.Size = new System.Drawing.Size(36, 36);
+            this.ImportAsset.Text = "Import Tile Asset";
+            this.ImportAsset.Click += new System.EventHandler(this.ImportAsset_Click);
             // 
             // label2
             // 
@@ -432,7 +450,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(918, 387);
+            this.label3.Location = new System.Drawing.Point(6, 12);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(79, 16);
             this.label3.TabIndex = 8;
@@ -440,10 +458,11 @@
             // 
             // tabAsset
             // 
-            this.tabAsset.Location = new System.Drawing.Point(921, 414);
+            this.tabAsset.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabAsset.Location = new System.Drawing.Point(0, 0);
             this.tabAsset.Name = "tabAsset";
             this.tabAsset.SelectedIndex = 0;
-            this.tabAsset.Size = new System.Drawing.Size(399, 283);
+            this.tabAsset.Size = new System.Drawing.Size(390, 361);
             this.tabAsset.TabIndex = 0;
             this.tabAsset.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
             // 
@@ -479,18 +498,43 @@
             // 
             // showLayerGroupBox
             // 
+            this.showLayerGroupBox.Controls.Add(this.checkBoxWeight);
+            this.showLayerGroupBox.Controls.Add(this.checkBoxBlockGrid);
             this.showLayerGroupBox.Controls.Add(this.checkBoxGrid);
             this.showLayerGroupBox.Controls.Add(this.ObjectCheckBox);
             this.showLayerGroupBox.Controls.Add(this.EventCheckBox);
             this.showLayerGroupBox.Controls.Add(this.MapCheckBox);
             this.showLayerGroupBox.Controls.Add(this.CollisionCheckBox);
+            this.showLayerGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.showLayerGroupBox.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.showLayerGroupBox.Location = new System.Drawing.Point(1338, 90);
+            this.showLayerGroupBox.Location = new System.Drawing.Point(0, 0);
             this.showLayerGroupBox.Name = "showLayerGroupBox";
-            this.showLayerGroupBox.Size = new System.Drawing.Size(301, 82);
+            this.showLayerGroupBox.Size = new System.Drawing.Size(422, 97);
             this.showLayerGroupBox.TabIndex = 18;
             this.showLayerGroupBox.TabStop = false;
             this.showLayerGroupBox.Text = "Show Layer";
+            // 
+            // checkBoxWeight
+            // 
+            this.checkBoxWeight.AutoSize = true;
+            this.checkBoxWeight.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkBoxWeight.Location = new System.Drawing.Point(307, 21);
+            this.checkBoxWeight.Name = "checkBoxWeight";
+            this.checkBoxWeight.Size = new System.Drawing.Size(82, 20);
+            this.checkBoxWeight.TabIndex = 22;
+            this.checkBoxWeight.Text = "Weight";
+            this.checkBoxWeight.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxBlockGrid
+            // 
+            this.checkBoxBlockGrid.AutoSize = true;
+            this.checkBoxBlockGrid.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkBoxBlockGrid.Location = new System.Drawing.Point(206, 47);
+            this.checkBoxBlockGrid.Name = "checkBoxBlockGrid";
+            this.checkBoxBlockGrid.Size = new System.Drawing.Size(104, 20);
+            this.checkBoxBlockGrid.TabIndex = 21;
+            this.checkBoxBlockGrid.Text = "BlockGrid";
+            this.checkBoxBlockGrid.UseVisualStyleBackColor = true;
             // 
             // checkBoxGrid
             // 
@@ -530,11 +574,12 @@
             this.tabEditLayer.Controls.Add(this.tabPageCollision);
             this.tabEditLayer.Controls.Add(this.tabPageEvent);
             this.tabEditLayer.Controls.Add(this.tabPageObject);
+            this.tabEditLayer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabEditLayer.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabEditLayer.Location = new System.Drawing.Point(1338, 178);
+            this.tabEditLayer.Location = new System.Drawing.Point(0, 0);
             this.tabEditLayer.Name = "tabEditLayer";
             this.tabEditLayer.SelectedIndex = 0;
-            this.tabEditLayer.Size = new System.Drawing.Size(342, 519);
+            this.tabEditLayer.Size = new System.Drawing.Size(422, 557);
             this.tabEditLayer.TabIndex = 20;
             this.tabEditLayer.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tabEditLayer_MouseClick);
             // 
@@ -549,7 +594,7 @@
             this.tabPageCollision.Location = new System.Drawing.Point(4, 24);
             this.tabPageCollision.Name = "tabPageCollision";
             this.tabPageCollision.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageCollision.Size = new System.Drawing.Size(334, 491);
+            this.tabPageCollision.Size = new System.Drawing.Size(414, 529);
             this.tabPageCollision.TabIndex = 0;
             this.tabPageCollision.Text = "Collision";
             this.tabPageCollision.UseVisualStyleBackColor = true;
@@ -725,7 +770,7 @@
             this.groupBox1.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(3, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(317, 99);
+            this.groupBox1.Size = new System.Drawing.Size(363, 99);
             this.groupBox1.TabIndex = 21;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Name";
@@ -742,7 +787,7 @@
             // 
             this.buttonCollisionUpdateName.BackColor = System.Drawing.Color.DarkTurquoise;
             this.buttonCollisionUpdateName.Font = new System.Drawing.Font("Broadway", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonCollisionUpdateName.Location = new System.Drawing.Point(219, 24);
+            this.buttonCollisionUpdateName.Location = new System.Drawing.Point(228, 21);
             this.buttonCollisionUpdateName.Name = "buttonCollisionUpdateName";
             this.buttonCollisionUpdateName.Size = new System.Drawing.Size(75, 69);
             this.buttonCollisionUpdateName.TabIndex = 65;
@@ -801,7 +846,7 @@
             this.listBoxCollision.ItemHeight = 15;
             this.listBoxCollision.Location = new System.Drawing.Point(14, 316);
             this.listBoxCollision.Name = "listBoxCollision";
-            this.listBoxCollision.Size = new System.Drawing.Size(306, 169);
+            this.listBoxCollision.Size = new System.Drawing.Size(307, 514);
             this.listBoxCollision.TabIndex = 43;
             this.listBoxCollision.SelectedIndexChanged += new System.EventHandler(this.listBoxCollision_SelectedIndexChanged);
             // 
@@ -813,7 +858,7 @@
             this.tabPageEvent.Location = new System.Drawing.Point(4, 24);
             this.tabPageEvent.Name = "tabPageEvent";
             this.tabPageEvent.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageEvent.Size = new System.Drawing.Size(334, 491);
+            this.tabPageEvent.Size = new System.Drawing.Size(414, 529);
             this.tabPageEvent.TabIndex = 1;
             this.tabPageEvent.Text = "Event";
             this.tabPageEvent.UseVisualStyleBackColor = true;
@@ -1066,7 +1111,7 @@
             this.listBoxEvent.ItemHeight = 15;
             this.listBoxEvent.Location = new System.Drawing.Point(6, 315);
             this.listBoxEvent.Name = "listBoxEvent";
-            this.listBoxEvent.Size = new System.Drawing.Size(315, 169);
+            this.listBoxEvent.Size = new System.Drawing.Size(315, 244);
             this.listBoxEvent.TabIndex = 61;
             this.listBoxEvent.SelectedIndexChanged += new System.EventHandler(this.listBoxEvent_SelectedIndexChanged);
             // 
@@ -1078,7 +1123,7 @@
             this.tabPageObject.Location = new System.Drawing.Point(4, 24);
             this.tabPageObject.Name = "tabPageObject";
             this.tabPageObject.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageObject.Size = new System.Drawing.Size(334, 491);
+            this.tabPageObject.Size = new System.Drawing.Size(414, 529);
             this.tabPageObject.TabIndex = 2;
             this.tabPageObject.Text = "Object";
             this.tabPageObject.UseVisualStyleBackColor = true;
@@ -1279,9 +1324,144 @@
             this.listBoxObject.ItemHeight = 15;
             this.listBoxObject.Location = new System.Drawing.Point(12, 297);
             this.listBoxObject.Name = "listBoxObject";
-            this.listBoxObject.Size = new System.Drawing.Size(303, 184);
+            this.listBoxObject.Size = new System.Drawing.Size(303, 274);
             this.listBoxObject.TabIndex = 44;
             this.listBoxObject.SelectedIndexChanged += new System.EventHandler(this.listBoxObject_SelectedIndexChanged);
+            // 
+            // splitContainer1
+            // 
+            this.splitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 92);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.panel1);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.label1);
+            this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
+            this.splitContainer1.Size = new System.Drawing.Size(1742, 660);
+            this.splitContainer1.SplitterDistance = 920;
+            this.splitContainer1.TabIndex = 22;
+            this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
+            // 
+            // panel1
+            // 
+            this.panel1.AutoSize = true;
+            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(918, 658);
+            this.panel1.TabIndex = 3;
+            this.panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
+            this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
+            this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
+            this.panel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseUp);
+            this.panel1.Resize += new System.EventHandler(this.panel1_Resize);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Broadway", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(3, 1);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(82, 16);
+            this.label1.TabIndex = 21;
+            this.label1.Text = "Mini map";
+            // 
+            // splitContainer2
+            // 
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer2.Name = "splitContainer2";
+            // 
+            // splitContainer2.Panel1
+            // 
+            this.splitContainer2.Panel1.Controls.Add(this.splitContainer3);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.splitContainer4);
+            this.splitContainer2.Size = new System.Drawing.Size(816, 658);
+            this.splitContainer2.SplitterDistance = 390;
+            this.splitContainer2.TabIndex = 23;
+            // 
+            // splitContainer3
+            // 
+            this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer3.Name = "splitContainer3";
+            this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer3.Panel1
+            // 
+            this.splitContainer3.Panel1.Controls.Add(this.panel3);
+            this.splitContainer3.Panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.splitContainer3_Panel1_Paint);
+            // 
+            // splitContainer3.Panel2
+            // 
+            this.splitContainer3.Panel2.Controls.Add(this.splitContainer5);
+            this.splitContainer3.Size = new System.Drawing.Size(390, 658);
+            this.splitContainer3.SplitterDistance = 243;
+            this.splitContainer3.TabIndex = 0;
+            // 
+            // splitContainer5
+            // 
+            this.splitContainer5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer5.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer5.Name = "splitContainer5";
+            this.splitContainer5.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer5.Panel1
+            // 
+            this.splitContainer5.Panel1.Controls.Add(this.label3);
+            this.splitContainer5.Panel1.Controls.Add(this.button9);
+            // 
+            // splitContainer5.Panel2
+            // 
+            this.splitContainer5.Panel2.Controls.Add(this.tabAsset);
+            this.splitContainer5.Size = new System.Drawing.Size(390, 411);
+            this.splitContainer5.SplitterDistance = 46;
+            this.splitContainer5.TabIndex = 0;
+            // 
+            // button9
+            // 
+            this.button9.Location = new System.Drawing.Point(114, 8);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(75, 23);
+            this.button9.TabIndex = 22;
+            this.button9.Text = "import";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Click += new System.EventHandler(this.ImportAsset_Click);
+            // 
+            // splitContainer4
+            // 
+            this.splitContainer4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer4.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer4.Name = "splitContainer4";
+            this.splitContainer4.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer4.Panel1
+            // 
+            this.splitContainer4.Panel1.Controls.Add(this.showLayerGroupBox);
+            // 
+            // splitContainer4.Panel2
+            // 
+            this.splitContainer4.Panel2.Controls.Add(this.tabEditLayer);
+            this.splitContainer4.Size = new System.Drawing.Size(422, 658);
+            this.splitContainer4.SplitterDistance = 97;
+            this.splitContainer4.TabIndex = 21;
+            // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(111, 22);
+            this.toolStripLabel1.Text = "toolStripLabel1";
+            this.toolStripLabel1.Click += new System.EventHandler(this.toolStripLabel1_Click);
             // 
             // toolStrip2
             // 
@@ -1293,46 +1473,29 @@
             this.toolStrip2.TabIndex = 21;
             this.toolStrip2.Text = "toolStrip2";
             // 
-            // toolStripLabel1
+            // panel2
             // 
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(111, 22);
-            this.toolStripLabel1.Text = "toolStripLabel1";
-            this.toolStripLabel1.Click += new System.EventHandler(this.toolStripLabel1_Click);
-            // 
-            // panel1
-            // 
-            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Location = new System.Drawing.Point(29, 111);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(858, 586);
-            this.panel1.TabIndex = 3;
-            this.panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
-            this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
-            this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
-            this.panel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseUp);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(0, 92);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(1742, 660);
+            this.panel2.TabIndex = 23;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1742, 752);
-            this.Controls.Add(this.panel1);
-            this.Controls.Add(this.toolStrip2);
-            this.Controls.Add(this.panel3);
-            this.Controls.Add(this.tabEditLayer);
-            this.Controls.Add(this.showLayerGroupBox);
-            this.Controls.Add(this.tabAsset);
-            this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.splitContainer1);
+            this.Controls.Add(this.panel2);
+            this.Controls.Add(this.toolStrip2);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "Form1";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
@@ -1366,6 +1529,29 @@
             this.groupBox5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numObject_top)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numObject_left)).EndInit();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
+            this.splitContainer3.Panel1.ResumeLayout(false);
+            this.splitContainer3.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
+            this.splitContainer3.ResumeLayout(false);
+            this.splitContainer5.Panel1.ResumeLayout(false);
+            this.splitContainer5.Panel1.PerformLayout();
+            this.splitContainer5.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer5)).EndInit();
+            this.splitContainer5.ResumeLayout(false);
+            this.splitContainer4.Panel1.ResumeLayout(false);
+            this.splitContainer4.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).EndInit();
+            this.splitContainer4.ResumeLayout(false);
             this.toolStrip2.ResumeLayout(false);
             this.toolStrip2.PerformLayout();
             this.ResumeLayout(false);
@@ -1395,7 +1581,6 @@
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem laodToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ToolStripButton ImportAsset;
@@ -1454,9 +1639,6 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox checkBoxGrid;
-        private System.Windows.Forms.ToolStrip toolStrip2;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
-        private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.ComboBox comboBoxEvent;
         private System.Windows.Forms.ComboBox comboBoxObject;
         private System.Windows.Forms.Label label5;
@@ -1479,6 +1661,19 @@
         private System.Windows.Forms.Button button8;
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button12;
+        private System.Windows.Forms.CheckBox checkBoxBlockGrid;
+        private System.Windows.Forms.CheckBox checkBoxWeight;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
+        private System.Windows.Forms.ToolStrip toolStrip2;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button button9;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.SplitContainer splitContainer3;
+        private System.Windows.Forms.SplitContainer splitContainer4;
+        private System.Windows.Forms.SplitContainer splitContainer5;
 
     }
 }
